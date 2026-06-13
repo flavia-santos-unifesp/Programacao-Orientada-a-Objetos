@@ -46,12 +46,11 @@ Os atributos das classes são privados e acessados por meio de métodos público
 
 ### Herança
 
-As classes `Cliente` e `Funcionario` herdam características comuns da classe `Pessoa`.
+A classes `Cliente` herdm características comuns da classe `Pessoa`.
 
 ```text
 Pessoa
 ├── Cliente
-└── Funcionario
 ```
 
 ### Polimorfismo
