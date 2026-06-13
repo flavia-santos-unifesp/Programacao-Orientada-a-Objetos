@@ -14,4 +14,9 @@ export class Pet {
     public getEspecie(): string {
         return this.especie;
     }
+
+    public getId(): number {
+        return this.id;
+    }
+
 }

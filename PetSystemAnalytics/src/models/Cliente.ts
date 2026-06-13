@@ -4,6 +4,9 @@ import { Pet } from "./Pet";
 export class Cliente extends Pessoa {
     private pets: Pet[] = [];
 
+    public getNome(): string {
+    return this.nome;
+}
     public adicionarPet(pet: Pet): void {
         this.pets.push(pet);
     }

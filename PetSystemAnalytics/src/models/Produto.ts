@@ -19,6 +19,15 @@ export class Produto {
     }
 
     public reduzirEstoque(qtd: number): void {
-        this.estoque -= qtd;
+
+            if (qtd > this.estoque) {
+                throw new Error("Estoque insuficiente.");
+            }
+
+            this.estoque -= qtd;
+        }
+
+    public getId(): number {
+    return this.id;
     }
 }

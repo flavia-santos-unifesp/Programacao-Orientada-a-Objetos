@@ -5,6 +5,9 @@ export class Servico {
         private preco: number
     ) {}
 
+    public getId(): number {
+        return this.id;
+    }
     public getNome(): string {
         return this.nome;
     }
