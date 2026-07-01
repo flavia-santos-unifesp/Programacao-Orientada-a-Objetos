@@ -1,18 +1,23 @@
-export class Servico {
+import { Pet } from "./Pet";
+
+export abstract class Servico {
+
     constructor(
-        private id: number,
-        private nome: string,
-        private preco: number
+        protected id: number,
+        protected nome: string
     ) {}
 
     public getId(): number {
         return this.id;
     }
+
     public getNome(): string {
         return this.nome;
     }
 
-    public getPreco(): number {
-        return this.preco;
-    }
+    public abstract calcularPreco(pet: Pet): number;
+
+    public abstract calcularDuracao(pet: Pet): number;
+
+    public abstract validarPet(pet: Pet): void;
 }

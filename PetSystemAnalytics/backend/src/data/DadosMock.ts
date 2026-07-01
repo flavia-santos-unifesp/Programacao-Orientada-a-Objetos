@@ -1,11 +1,18 @@
 import { Cliente } from "../models/Cliente";
 import { Pet } from "../models/Pet";
 import { Produto } from "../models/Produto";
-import { Servico } from "../models/Servico";
 import { ItemVenda } from "../models/ItemVenda";
 import { Venda } from "../models/Venda";
+import { Especie } from "../models/Especie";
+import { Porte } from "../models/Porte";
+import { Banho } from "../models/service-types/Banho";
+import { Tosa } from "../models/service-types/Tosa";
+import { Consulta } from "../models/service-types/Consulta";
+import { Hospedagem } from "../models/service-types/Hospedagem";
 
+// =====================
 // CLIENTES
+// =====================
 
 export const cliente1 = new Cliente(
     1,
@@ -35,46 +42,69 @@ export const cliente4 = new Cliente(
     "ana@email.com"
 );
 
+// =====================
 // PETS
+// =====================
 
 const malia = new Pet(
     1,
     "Malia",
-    "Gato",
-    "SDR",
-    3
+    Especie.GATO,
+    "SRD",
+    3,
+    3.8,
+    Porte.PEQUENO
 );
 
 const leon = new Pet(
     2,
     "Leon",
-    "Gato",
-    "SDR",
-    2
+    Especie.GATO,
+    "SRD",
+    8,
+    9.5,
+    Porte.PEQUENO
 );
 
 const thor = new Pet(
     3,
     "Thor",
-    "Cachorro",
+    Especie.CACHORRO,
     "Golden Retriever",
-    5
+    5,
+    32,
+    Porte.GRANDE
 );
 
 const matilda = new Pet(
     4,
     "Matilda",
-    "Gato",
-    "SDR",
-    1
+    Especie.GATO,
+    "SRD",
+    7,
+    4.6,
+    Porte.PEQUENO
+);
+
+const agnes = new Pet(
+    5,
+    "Agnes",
+    Especie.GATO,
+    "SRD",
+    2,
+    3.4,
+    Porte.PEQUENO
 );
 
 cliente1.adicionarPet(malia);
 cliente2.adicionarPet(leon);
 cliente3.adicionarPet(thor);
 cliente2.adicionarPet(matilda);
+cliente2.adicionarPet(agnes);
 
+// =====================
 // PRODUTOS
+// =====================
 
 export const racao = new Produto(
     1,
@@ -111,27 +141,21 @@ export const cama = new Produto(
     10
 );
 
+// =====================
 // SERVIÇOS
+// =====================
 
-export const banho = new Servico(
-    1,
-    "Banho",
-    40
-);
+export const banho = new Banho();
 
-export const tosa = new Servico(
-    2,
-    "Tosa",
-    60
-);
+export const tosa = new Tosa();
 
-export const consulta = new Servico(
-    3,
-    "Consulta Veterinária",
-    120
-);
+export const consulta = new Consulta();
 
+export const hospedagem = new Hospedagem();
+
+// =====================
 // VENDAS
+// =====================
 
 export const venda1 = new Venda(
     1,
@@ -139,13 +163,8 @@ export const venda1 = new Venda(
     new Date()
 );
 
-venda1.adicionarItem(
-    new ItemVenda(racao, 2)
-);
-
-venda1.adicionarItem(
-    new ItemVenda(banho, 1)
-);
+venda1.adicionarItem(new ItemVenda(racao, 2));
+venda1.adicionarItem(new ItemVenda(banho, 1));
 
 export const venda2 = new Venda(
     2,
@@ -153,13 +172,8 @@ export const venda2 = new Venda(
     new Date()
 );
 
-venda2.adicionarItem(
-    new ItemVenda(coleira, 1)
-);
-
-venda2.adicionarItem(
-    new ItemVenda(tosa, 1)
-);
+venda2.adicionarItem(new ItemVenda(coleira, 1));
+venda2.adicionarItem(new ItemVenda(tosa, 1));
 
 export const venda3 = new Venda(
     3,
@@ -167,13 +181,8 @@ export const venda3 = new Venda(
     new Date()
 );
 
-venda3.adicionarItem(
-    new ItemVenda(brinquedo, 3)
-);
-
-venda3.adicionarItem(
-    new ItemVenda(banho, 1)
-);
+venda3.adicionarItem(new ItemVenda(brinquedo, 3));
+venda3.adicionarItem(new ItemVenda(banho, 1));
 
 export const venda4 = new Venda(
     4,
@@ -181,13 +190,8 @@ export const venda4 = new Venda(
     new Date()
 );
 
-venda4.adicionarItem(
-    new ItemVenda(cama, 1)
-);
-
-venda4.adicionarItem(
-    new ItemVenda(consulta, 1)
-);
+venda4.adicionarItem(new ItemVenda(cama, 1));
+venda4.adicionarItem(new ItemVenda(consulta, 1));
 
 export const venda5 = new Venda(
     5,
@@ -195,13 +199,8 @@ export const venda5 = new Venda(
     new Date()
 );
 
-venda5.adicionarItem(
-    new ItemVenda(racao, 1)
-);
-
-venda5.adicionarItem(
-    new ItemVenda(shampoo, 2)
-);
+venda5.adicionarItem(new ItemVenda(racao, 1));
+venda5.adicionarItem(new ItemVenda(shampoo, 2));
 
 const vendaErro = new Venda(
     999,
@@ -209,15 +208,15 @@ const vendaErro = new Venda(
     new Date()
 );
 
-vendaErro.adicionarItem(
-    new ItemVenda(racao, 999)
-);
+vendaErro.adicionarItem(new ItemVenda(racao, 999));
 
-// primeiro faz dando certo e depois add vendaErro no array abaixo para mostar que dá errado
+// Primeiro execute normalmente.
+// Depois adicione "vendaErro" no array abaixo para testar a exceção de estoque.
+
 export const vendas = [
     venda1,
     venda2,
     venda3,
     venda4,
-    venda5,
+    venda5
 ];
