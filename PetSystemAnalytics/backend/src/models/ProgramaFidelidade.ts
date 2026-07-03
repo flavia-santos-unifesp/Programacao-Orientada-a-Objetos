@@ -21,6 +21,20 @@ export class ProgramaFidelidade {
     }
 
     /**
+     * Restaura o estado persistido do programa de fidelidade.
+     * Utilizado pelos mappers ao reconstruir entidades vindas do banco.
+     */
+    public restaurar(
+        pontos: number,
+        nivel: NivelFidelidade
+    ): void {
+
+        this.pontos = pontos;
+        this.nivel = nivel;
+
+    }
+
+    /**
      * Registra uma compra no programa de fidelidade.
      * Regra atual: cada R$ 1,00 gasto gera 1 ponto.
      *

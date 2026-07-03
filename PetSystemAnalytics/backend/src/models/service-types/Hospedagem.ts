@@ -1,6 +1,7 @@
 import { Pet } from "../Pet";
 import { Porte } from "../Porte";
 import { Servico } from "../Servico";
+import { TipoServico } from "./TipoServico";
 import { ErrorMessages } from "../../constants/ErrorMessages";
 
 export class Hospedagem extends Servico {
@@ -15,6 +16,10 @@ export class Hospedagem extends Servico {
         super(4, "Hospedagem");
     }
 
+    public getTipo(): TipoServico {
+        return TipoServico.HOSPEDAGEM;
+    }
+
     public calcularPreco(pet: Pet): number {
 
         switch (pet.getPorte()) {
@@ -27,7 +32,7 @@ export class Hospedagem extends Servico {
 
             case Porte.GRANDE:
                 return Hospedagem.DIARIA_GRANDE;
-            
+
             default:
                 throw new Error(ErrorMessages.INVALID_PORTE);
         }

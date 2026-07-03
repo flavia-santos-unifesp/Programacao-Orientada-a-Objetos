@@ -1,4 +1,5 @@
 import { Pet } from "./Pet";
+import { TipoServico } from "./service-types/TipoServico";
 
 export abstract class Servico {
 
@@ -15,9 +16,15 @@ export abstract class Servico {
         return this.nome;
     }
 
+    /**
+     * Retorna o tipo do serviço.
+     */
+    public abstract getTipo(): TipoServico;
+
     public abstract calcularPreco(pet: Pet): number;
 
     public abstract calcularDuracao(pet: Pet): number;
 
     public abstract validarPet(pet: Pet): void;
+
 }

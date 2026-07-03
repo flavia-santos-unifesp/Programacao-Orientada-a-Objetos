@@ -53,10 +53,6 @@ export class ClienteMapper {
 
     /**
      * Converte um registro do Prisma em um objeto do domínio.
-     *
-     * TODO:
-     * Quando ProgramaFidelidade permitir restaurar diretamente
-     * pontos e nível, substituir registrarCompra().
      */
     public static toDomain(data: PrismaCliente): Cliente {
 
@@ -67,9 +63,10 @@ export class ClienteMapper {
             data.email
         );
 
-        if (data.pontos > 0) {
-            cliente.registrarCompra(data.pontos);
-        }
+        cliente.restaurarProgramaFidelidade(
+            data.pontos,
+            data.nivel as NivelFidelidade
+        );
 
         return cliente;
 

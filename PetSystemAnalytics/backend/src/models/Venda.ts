@@ -35,6 +35,15 @@ export class Venda {
         return this.id;
     }
 
+    /**
+     * Define o ID da venda.
+     * Utilizado pelo repositório após a persistência.
+    */
+
+    public setId(id: number): void {
+        this.id = id;
+    }
+
     public getData(): Date {
         return this.data;
     }

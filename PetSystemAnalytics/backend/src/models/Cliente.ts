@@ -28,6 +28,23 @@ export class Cliente extends Pessoa {
     }
 
     /**
+     * Restaura o estado do programa de fidelidade.
+     * Utilizado pelos mappers ao reconstruir um cliente
+     * a partir do banco de dados.
+     */
+    public restaurarProgramaFidelidade(
+        pontos: number,
+        nivel: NivelFidelidade
+    ): void {
+
+        this.programaFidelidade.restaurar(
+            pontos,
+            nivel
+        );
+
+    }
+
+    /**
      * Registra uma compra no programa de fidelidade.
      * Retorna a quantidade de pontos obtidos.
      */

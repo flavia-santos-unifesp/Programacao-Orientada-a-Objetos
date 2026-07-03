@@ -1,6 +1,7 @@
 import { Pet } from "../Pet";
 import { Porte } from "../Porte";
 import { Servico } from "../Servico";
+import { TipoServico } from "./TipoServico";
 import { ErrorMessages } from "../../constants/ErrorMessages";
 
 export class Tosa extends Servico {
@@ -15,6 +16,10 @@ export class Tosa extends Servico {
 
     constructor() {
         super(2, "Tosa");
+    }
+
+    public getTipo(): TipoServico {
+        return TipoServico.TOSA;
     }
 
     public calcularPreco(pet: Pet): number {

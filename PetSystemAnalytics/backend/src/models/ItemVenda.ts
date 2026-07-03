@@ -8,11 +8,14 @@ export class ItemVenda {
     constructor(
         private item: Produto | Servico,
         private quantidade: number,
-        private pet?: Pet
+        private pet?: Pet,
+        private precoUnitario?: number
     ) {
+
         if (quantidade <= 0) {
             throw new Error(ErrorMessages.INVALID_QUANTITY);
         }
+
     }
 
     public getItem(): Produto | Servico {
@@ -27,10 +30,20 @@ export class ItemVenda {
         return this.pet;
     }
 
-    public getSubtotal(): number {
+    /**
+     * Retorna o preço unitário do item.
+     *
+     * Quando o item foi reconstruído do banco,
+     * utiliza o preço persistido.
+     */
+    public getPrecoUnitario(): number {
+
+        if (this.precoUnitario !== undefined) {
+            return this.precoUnitario;
+        }
 
         if (this.item instanceof Produto) {
-            return this.item.getPreco() * this.quantidade;
+            return this.item.getPreco();
         }
 
         if (!this.pet) {
@@ -39,9 +52,17 @@ export class ItemVenda {
 
         this.item.validarPet(this.pet);
 
-        const precoServico = this.item.calcularPreco(this.pet);
+        return this.item.calcularPreco(this.pet);
 
-        return precoServico * this.quantidade;
+    }
+
+    /**
+     * Calcula o subtotal do item.
+     */
+    public getSubtotal(): number {
+
+        return this.getPrecoUnitario() * this.quantidade;
+
     }
 
 }

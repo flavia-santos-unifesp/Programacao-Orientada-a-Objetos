@@ -1,5 +1,6 @@
 import { Pet } from "../Pet";
 import { Servico } from "../Servico";
+import { TipoServico } from "./TipoServico";
 
 export class Consulta extends Servico {
 
@@ -8,6 +9,10 @@ export class Consulta extends Servico {
 
     constructor() {
         super(3, "Consulta Veterinária");
+    }
+
+    public getTipo(): TipoServico {
+        return TipoServico.CONSULTA;
     }
 
     public calcularPreco(pet: Pet): number {

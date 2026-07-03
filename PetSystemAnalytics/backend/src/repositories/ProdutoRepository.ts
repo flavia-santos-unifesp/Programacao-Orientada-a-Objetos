@@ -21,6 +21,33 @@ export class ProdutoRepository {
     }
 
     /**
+     * Atualiza um produto existente.
+     */
+    public async update(produto: Produto): Promise<void> {
+
+        const data = ProdutoMapper.toPersistence(produto);
+
+        await prisma.produto.update({
+
+            where: {
+                id: produto.getId()
+            },
+
+            data: {
+
+                nome: data.nome,
+
+                preco: data.preco,
+
+                estoque: data.estoque
+
+            }
+
+        });
+
+    }
+
+    /**
      * Lista todos os produtos.
      */
     public async findAll(): Promise<Produto[]> {
