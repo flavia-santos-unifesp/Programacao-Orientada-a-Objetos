@@ -14,5 +14,11 @@ export const ErrorMessages = {
         "Serviço inválido.",
     
     INVALID_QUANTITY:
-        "A quantidade deve ser maior que zero."
+        "A quantidade deve ser maior que zero.",
+
+    INVALID_LOYALTY_LEVEL:
+        "Nível de fidelidade inválido.",
+    
+    INVALID_VALUE:
+        "O valor informado é inválido."
 } as const;
