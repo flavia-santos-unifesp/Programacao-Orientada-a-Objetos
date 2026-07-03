@@ -1,14 +1,55 @@
+import { prisma } from "../database/prisma";
+import { CreatePetDTO } from "../dto/CreatePetDTO";
+import { PetMapper } from "../mappers/PetMapper";
 import { Pet } from "../models/Pet";
 
 export class PetRepository {
 
-    private pets: Pet[] = [];
+    /**
+     * Cadastra um novo pet.
+     */
+    public async create(dto: CreatePetDTO): Promise<Pet> {
 
-    public adicionar(pet: Pet): void {
-        this.pets.push(pet);
+        const data = PetMapper.fromCreateDTO(dto);
+
+        const pet = await prisma.pet.create({
+            data
+        });
+
+        return PetMapper.toDomain(pet);
+
     }
 
-    public listar(): Pet[] {
-        return this.pets;
+    /**
+     * Lista todos os pets.
+     */
+    public async findAll(): Promise<Pet[]> {
+
+        const pets = await prisma.pet.findMany();
+
+        return pets.map(pet =>
+            PetMapper.toDomain(pet)
+        );
+
     }
+
+    /**
+     * Busca um pet pelo ID.
+     */
+    public async findById(id: number): Promise<Pet | null> {
+
+        const pet = await prisma.pet.findUnique({
+            where: {
+                id
+            }
+        });
+
+        if (!pet) {
+            return null;
+        }
+
+        return PetMapper.toDomain(pet);
+
+    }
+
 }

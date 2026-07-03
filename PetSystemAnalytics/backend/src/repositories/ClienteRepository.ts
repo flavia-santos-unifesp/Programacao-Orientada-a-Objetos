@@ -1,20 +1,55 @@
+import { prisma } from "../database/prisma";
+import { ClienteMapper } from "../mappers/ClienteMapper";
+import { CreateClienteDTO } from "../dto/CreateClienteDTO";
 import { Cliente } from "../models/Cliente";
 
 export class ClienteRepository {
 
-    private clientes: Cliente[] = [];
+    /**
+     * Cria um novo cliente.
+     */
+    public async create(dto: CreateClienteDTO): Promise<Cliente> {
 
-    public adicionar(cliente: Cliente): void {
-        this.clientes.push(cliente);
+        const data = ClienteMapper.fromCreateDTO(dto);
+
+        const cliente = await prisma.cliente.create({
+            data
+        });
+
+        return ClienteMapper.toDomain(cliente);
+
     }
 
-    public listar(): Cliente[] {
-        return this.clientes;
-    }
+    /**
+     * Lista todos os clientes.
+     */
+    public async findAll(): Promise<Cliente[]> {
 
-    public buscarPorId(id: number): Cliente | undefined {
-        return this.clientes.find(
-            cliente => cliente.getId() === id
+        const clientes = await prisma.cliente.findMany();
+
+        return clientes.map(cliente =>
+            ClienteMapper.toDomain(cliente)
         );
+
     }
+
+    /**
+     * Busca um cliente pelo ID.
+     */
+    public async findById(id: number): Promise<Cliente | null> {
+
+        const cliente = await prisma.cliente.findUnique({
+            where: {
+                id
+            }
+        });
+
+        if (!cliente) {
+            return null;
+        }
+
+        return ClienteMapper.toDomain(cliente);
+
+    }
+
 }

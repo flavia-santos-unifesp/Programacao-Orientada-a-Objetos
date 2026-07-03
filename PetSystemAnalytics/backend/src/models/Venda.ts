@@ -5,6 +5,14 @@ export class Venda {
 
     private itens: ItemVenda[] = [];
 
+    /**
+     * Valores persistidos no banco.
+     * Quando undefined, são calculados dinamicamente.
+     */
+    private subtotal?: number;
+    private desconto?: number;
+    private total?: number;
+
     constructor(
         private id: number,
         private cliente: Cliente,
@@ -32,10 +40,30 @@ export class Venda {
     }
 
     /**
+     * Utilizado pelo Mapper ao reconstruir uma venda
+     * a partir do banco de dados.
+     */
+    public restaurarTotais(
+        subtotal: number,
+        desconto: number,
+        total: number
+    ): void {
+
+        this.subtotal = subtotal;
+        this.desconto = desconto;
+        this.total = total;
+
+    }
+
+    /**
      * Calcula o valor bruto da venda,
      * antes da aplicação de descontos.
      */
     public calcularSubtotal(): number {
+
+        if (this.subtotal !== undefined) {
+            return this.subtotal;
+        }
 
         let subtotal = 0;
 
@@ -54,6 +82,10 @@ export class Venda {
      */
     public calcularValorDesconto(): number {
 
+        if (this.desconto !== undefined) {
+            return this.desconto;
+        }
+
         return this.cliente.calcularValorDesconto(
             this.calcularSubtotal()
         );
@@ -61,10 +93,13 @@ export class Venda {
     }
 
     /**
-     * Calcula o valor final da venda
-     * após a aplicação do desconto.
+     * Calcula o valor final da venda.
      */
     public calcularTotal(): number {
+
+        if (this.total !== undefined) {
+            return this.total;
+        }
 
         return this.cliente.aplicarDesconto(
             this.calcularSubtotal()
