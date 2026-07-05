@@ -1,18 +1,43 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PetForm } from "../components/PetForm";
 import { PetList } from "../components/PetList";
 import type { PetResponse, CreatePetDTO } from "../types";
-import { mockPets } from "../data/mockData";
+import { fetchAPI } from "../services/api";
 
 export function Pets() {
-  const [pets, setPets] = useState<PetResponse[]>(mockPets);
+  const [pets, setPets] = useState<PetResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleAddPet = (data: CreatePetDTO) => {
-    const novoPet: PetResponse = {
-      ...data,
-      id: Math.max(...pets.map(p => p.id), 0) + 1,
+  // Buscar pets do backend
+  useEffect(() => {
+    const carregarPets = async () => {
+      try {
+        const data = await fetchAPI<PetResponse[]>("/pets");
+        setPets(data);
+        setError(null);
+      } catch (err) {
+        setError("Erro ao carregar pets");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     };
-    setPets([...pets, novoPet]);
+    carregarPets();
+  }, []);
+
+  const handleAddPet = async (data: CreatePetDTO) => {
+    try {
+      const novoPet = await fetchAPI<PetResponse>("/pets", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+      setPets([...pets, novoPet]);
+      setError(null);
+    } catch (err) {
+      setError("Erro ao adicionar pet");
+      console.error(err);
+    }
   };
 
   return (
@@ -20,8 +45,9 @@ export function Pets() {
       <h1 style={{ color: "var(--text-h)", fontSize: "2.25rem", margin: 0 }}>
         🐕 Gestão de Pets
       </h1>
-      <PetForm onSubmit={handleAddPet} />
-      <PetList pets={pets} />
+      {error && <div style={{ color: "red", padding: "0.5rem" }}>{error}</div>}
+      {loading ? <p>Carregando...</p> : <PetForm onSubmit={handleAddPet} />}
+      {loading ? <p>Carregando...</p> : <PetList pets={pets} />}
     </div>
   );
 }

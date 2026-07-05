@@ -1,20 +1,47 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ClienteForm } from "../components/ClienteForm";
 import { ClienteList } from "../components/ClienteList";
 import type { ClienteResponse } from "../types";
-import { mockClientes } from "../data/mockData";
+import { fetchAPI } from "../services/api";
 
 export function Clientes() {
-  const [clientes, setClientes] = useState<ClienteResponse[]>(mockClientes);
+  const [clientes, setClientes] = useState<ClienteResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleAddCliente = (data: any) => {
-    const novoCliente: ClienteResponse = {
-      ...data,
-      id: Math.max(...clientes.map(c => c.id), 0) + 1,
-      pontosFidelidade: 0,
-      nivelFidelidade: "BRONZE" as const,
+  // Buscar clientes do backend
+  useEffect(() => {
+    const carregarClientes = async () => {
+      try {
+        const data = await fetchAPI<ClienteResponse[]>("/clientes");
+        setClientes(data);
+        setError(null);
+      } catch (err) {
+        setError("Erro ao carregar clientes");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     };
-    setClientes([...clientes, novoCliente]);
+    carregarClientes();
+  }, []);
+
+  const handleAddCliente = async (data: any) => {
+    try {
+      const novoCliente = await fetchAPI<ClienteResponse>("/clientes", {
+        method: "POST",
+        body: JSON.stringify({
+          nome: data.nome,
+          email: data.email,
+          telefone: data.telefone,
+        }),
+      });
+      setClientes([...clientes, novoCliente]);
+      setError(null);
+    } catch (err) {
+      setError("Erro ao adicionar cliente");
+      console.error(err);
+    }
   };
 
   return (
@@ -22,8 +49,9 @@ export function Clientes() {
       <h1 style={{ color: "var(--text-h)", fontSize: "2.25rem", margin: 0 }}>
         👥 Gestão de Clientes
       </h1>
-      <ClienteForm onSubmit={handleAddCliente} />
-      <ClienteList clientes={clientes} />
+      {error && <div style={{ color: "red", padding: "0.5rem" }}>{error}</div>}
+      {loading ? <p>Carregando...</p> : <ClienteForm onSubmit={handleAddCliente} />}
+      {loading ? <p>Carregando...</p> : <ClienteList clientes={clientes} />}
     </div>
   );
 }

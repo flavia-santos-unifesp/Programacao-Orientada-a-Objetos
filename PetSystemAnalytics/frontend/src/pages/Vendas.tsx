@@ -1,24 +1,49 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { VendaForm } from "../components/VendaForm";
 import { VendaList } from "../components/VendaList";
 import type { VendaResponse, CreateVendaDTO } from "../types";
-import { mockVendas } from "../data/mockData";
+import { fetchAPI } from "../services/api";
 
 export function Vendas() {
-  const [vendas, setVendas] = useState<VendaResponse[]>(mockVendas);
+  const [vendas, setVendas] = useState<VendaResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleAddVenda = (data: CreateVendaDTO) => {
-    const novaVenda: VendaResponse = {
-      id: Math.max(...vendas.map(v => v.id), 0) + 1,
-      clienteId: data.clienteId,
-      cliente: { id: data.clienteId, nome: "Cliente", telefone: "", email: "", pontosFidelidade: 0, nivelFidelidade: "BRONZE" },
-      data: new Date().toISOString(),
-      itens: [],
-      subtotal: 0,
-      desconto: 0,
-      total: 0
+  // Buscar vendas do backend
+  useEffect(() => {
+    const carregarVendas = async () => {
+      try {
+        const data = await fetchAPI<VendaResponse[]>("/vendas");
+        setVendas(data);
+        setError(null);
+      } catch (err) {
+        setError("Erro ao carregar vendas");
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     };
-    setVendas([...vendas, novaVenda]);
+    carregarVendas();
+  }, []);
+
+  const handleAddVenda = async (data: CreateVendaDTO) => {
+    try {
+      const novaVenda = await fetchAPI<VendaResponse>("/vendas", {
+        method: "POST",
+        body: JSON.stringify({
+          clienteId: data.clienteId,
+          data: new Date().toISOString(),
+          subtotal: 0,
+          desconto: 0,
+          total: 0,
+        }),
+      });
+      setVendas([...vendas, novaVenda]);
+      setError(null);
+    } catch (err) {
+      setError("Erro ao adicionar venda");
+      console.error(err);
+    }
   };
 
   return (
@@ -26,8 +51,9 @@ export function Vendas() {
       <h1 style={{ color: "var(--text-h)", fontSize: "2.25rem", margin: 0 }}>
         🛒 Gestão de Vendas
       </h1>
-      <VendaForm onSubmit={handleAddVenda} />
-      <VendaList vendas={vendas} />
+      {error && <div style={{ color: "red", padding: "0.5rem" }}>{error}</div>}
+      {loading ? <p>Carregando...</p> : <VendaForm onSubmit={handleAddVenda} />}
+      {loading ? <p>Carregando...</p> : <VendaList vendas={vendas} />}
     </div>
   );
 }
