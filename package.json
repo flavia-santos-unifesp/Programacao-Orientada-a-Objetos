@@ -4,6 +4,6 @@
   "description": "Pet System Analytics - Frontend and Backend",
   "scripts": {
     "build": "cd PetSystemAnalytics/backend && npm install && npm run build",
-    "start": "node PetSystemAnalytics/backend/dist/src/index.js"
+    "start": "node index.js"
   }
 }
