@@ -3,6 +3,7 @@
     "module": "nodenext",
     "target": "esnext",
     "types": ["node"],
+    "outDir": "dist",
 
     "sourceMap": true,
     "declaration": true,
