@@ -30,15 +30,9 @@ export function Vendas() {
     try {
       const novaVenda = await fetchAPI<VendaResponse>("/vendas", {
         method: "POST",
-        body: JSON.stringify({
-          clienteId: data.clienteId,
-          data: new Date().toISOString(),
-          subtotal: 0,
-          desconto: 0,
-          total: 0,
-        }),
+        body: JSON.stringify(data),
       });
-      setVendas([...vendas, novaVenda]);
+      setVendas([novaVenda, ...vendas]);
       setError(null);
     } catch (err) {
       setError("Erro ao adicionar venda");

@@ -138,9 +138,17 @@ app.post("/api/produtos", async (req, res) => {
 app.get("/api/vendas", async (req, res) => {
   try {
     const vendas = await prisma.venda.findMany({
-      include: { itens: true, cliente: true },
+      include: {
+        cliente: true,
+        itens: { include: { produto: true } },
+      },
+      orderBy: { data: "desc" },
     });
-    res.json(vendas);
+    const mapped = vendas.map((v) => ({
+      ...v,
+      cliente: mapCliente(v.cliente),
+    }));
+    res.json(mapped);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch vendas" });
   }
@@ -148,27 +156,79 @@ app.get("/api/vendas", async (req, res) => {
 
 app.post("/api/vendas", async (req, res) => {
   try {
-    const { clienteId, data, subtotal = 0, desconto = 0, total = 0 } = req.body;
-    
-    if (!clienteId) {
-      return res.status(400).json({ error: "clienteId é obrigatório" });
+    const { clienteId, itens } = req.body;
+
+    if (!clienteId || !itens || !Array.isArray(itens) || itens.length === 0) {
+      return res.status(400).json({ error: "clienteId e itens são obrigatórios" });
     }
 
-    const venda = await prisma.venda.create({
-      data: {
-        clienteId: parseInt(clienteId),
-        data: data ? new Date(data) : new Date(),
-        subtotal: parseFloat(subtotal),
-        desconto: parseFloat(desconto),
-        total: parseFloat(total),
-      },
+    // Buscar cliente para calcular desconto por nível de fidelidade
+    const cliente = await prisma.cliente.findUnique({ where: { id: parseInt(clienteId) } });
+    if (!cliente) return res.status(404).json({ error: "Cliente não encontrado" });
+
+    const descontoMap: Record<string, number> = { BRONZE: 0, PRATA: 0.05, OURO: 0.10 };
+    const percentualDesconto = descontoMap[cliente.nivel] ?? 0;
+
+    // Calcular subtotal
+    const subtotal = itens.reduce((acc: number, item: any) => {
+      return acc + parseFloat(item.precoUnitario) * parseInt(item.quantidade);
+    }, 0);
+
+    const desconto = subtotal * percentualDesconto;
+    const total = subtotal - desconto;
+
+    // Criar venda com itens em uma transação
+    const venda = await prisma.$transaction(async (tx) => {
+      const novaVenda = await tx.venda.create({
+        data: {
+          clienteId: parseInt(clienteId),
+          data: new Date(),
+          subtotal,
+          desconto,
+          total,
+          itens: {
+            create: itens.map((item: any) => ({
+              tipo: item.tipo,
+              quantidade: parseInt(item.quantidade),
+              precoUnitario: parseFloat(item.precoUnitario),
+              produtoId: item.produtoId ? parseInt(item.produtoId) : null,
+              servico: item.servico || null,
+              petId: item.petId ? parseInt(item.petId) : null,
+            })),
+          },
+        },
+        include: { itens: true, cliente: true },
+      });
+
+      // Atualizar estoque dos produtos
+      for (const item of itens) {
+        if (item.produtoId) {
+          await tx.produto.update({
+            where: { id: parseInt(item.produtoId) },
+            data: { estoque: { decrement: parseInt(item.quantidade) } },
+          });
+        }
+      }
+
+      // Adicionar pontos ao cliente (1 ponto por real gasto)
+      const pontosGanhos = Math.floor(total);
+      const novosPontos = cliente.pontos + pontosGanhos;
+      const novoNivel = novosPontos >= 1000 ? "OURO" : novosPontos >= 500 ? "PRATA" : "BRONZE";
+
+      await tx.cliente.update({
+        where: { id: parseInt(clienteId) },
+        data: { pontos: novosPontos, nivel: novoNivel },
+      });
+
+      return novaVenda;
     });
-    res.status(201).json(venda);
+
+    res.status(201).json({ ...venda, cliente: mapCliente(venda.cliente) });
   } catch (error: any) {
     console.error("Erro ao criar venda:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Failed to create venda",
-      details: error?.message || String(error)
+      details: error?.message || String(error),
     });
   }
 });
