@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd PetSystemAnalytics/frontend && npm install && npm run build",
+  "outputDirectory": "PetSystemAnalytics/frontend/dist",
+  "installCommand": "cd PetSystemAnalytics/frontend && npm install"
+}
