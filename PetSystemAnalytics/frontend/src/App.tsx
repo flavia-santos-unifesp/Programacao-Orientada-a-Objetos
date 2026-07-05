@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Dashboard } from "./pages/Dashboard";
 import { Clientes } from "./pages/Clientes";
 import { Produtos } from "./pages/Produtos";
+import { Servicos } from "./pages/Servicos";
 import { OProjeto } from "./pages/OProjeto";
 import { Equipe } from "./pages/Equipe";
 import { Pets } from "./pages/Pets";
@@ -9,7 +10,7 @@ import { Vendas } from "./pages/Vendas";
 import { mockKPIs } from "./data/mockData";
 import "./App.css";
 
-type Page = "dashboard" | "clientes" | "produtos" | "pets" | "vendas" | "projeto" | "equipe";
+type Page = "dashboard" | "clientes" | "produtos" | "servicos" | "pets" | "vendas" | "projeto" | "equipe";
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>("dashboard");
@@ -42,6 +43,7 @@ export default function App() {
               { id: "clientes", icon: "👥", label: "Clientes" },
               { id: "pets", icon: "🐕", label: "Pets" },
               { id: "produtos", icon: "📦", label: "Produtos" },
+              { id: "servicos", icon: "🐾", label: "Serviços" },
               { id: "vendas", icon: "🛒", label: "Vendas" },
               { id: "projeto", icon: "📋", label: "O Projeto" },
               { id: "equipe", icon: "👥", label: "Equipe" }
@@ -80,6 +82,7 @@ export default function App() {
           {currentPage === "dashboard" && <Dashboard kpis={mockKPIs} />}
           {currentPage === "clientes" && <Clientes />}
           {currentPage === "produtos" && <Produtos />}
+          {currentPage === "servicos" && <Servicos />}
           {currentPage === "pets" && <Pets />}
           {currentPage === "vendas" && <Vendas />}
           {currentPage === "projeto" && <OProjeto />}

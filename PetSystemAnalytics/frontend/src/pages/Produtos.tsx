@@ -1,96 +1,109 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ProdutoResponse } from "../types";
-import { mockProdutos } from "../data/mockData";
+import { fetchAPI } from "../services/api";
 
 export function Produtos() {
-  const [produtos, setProdutos] = useState<ProdutoResponse[]>(mockProdutos);
+  const [produtos, setProdutos] = useState<ProdutoResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [nome, setNome] = useState("");
   const [preco, setPreco] = useState("");
   const [estoque, setEstoque] = useState("");
 
-  const handleAddProduto = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetchAPI<ProdutoResponse[]>("/produtos")
+      .then(setProdutos)
+      .catch(() => setError("Erro ao carregar produtos"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleAddProduto = async (e: React.FormEvent) => {
     e.preventDefault();
-    const novoProduto: ProdutoResponse = {
-      id: Math.max(...produtos.map(p => p.id), 0) + 1,
-      nome,
-      preco: parseFloat(preco),
-      estoque: parseInt(estoque),
-    };
-    setProdutos([...produtos, novoProduto]);
-    setNome("");
-    setPreco("");
-    setEstoque("");
+    try {
+      const novo = await fetchAPI<ProdutoResponse>("/produtos", {
+        method: "POST",
+        body: JSON.stringify({ nome, preco: parseFloat(preco), estoque: parseInt(estoque) }),
+      });
+      setProdutos([...produtos, novo]);
+      setNome("");
+      setPreco("");
+      setEstoque("");
+      setError(null);
+    } catch {
+      setError("Erro ao adicionar produto");
+    }
+  };
+
+  const inputStyle: React.CSSProperties = {
+    padding: "0.75rem",
+    border: "1px solid var(--border)",
+    borderRadius: "4px",
+    fontFamily: "var(--sans)",
+    fontSize: "1rem",
+    color: "var(--text)",
+    background: "var(--bg)",
+    width: "100%",
   };
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-4xl font-bold">Gestão de Produtos</h1>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+      <h1 style={{ color: "var(--text-h)", fontSize: "2.25rem", margin: 0 }}>📦 Gestão de Produtos</h1>
 
-      <form onSubmit={handleAddProduto} className="bg-white p-6 rounded shadow">
-        <h2 className="text-2xl font-bold mb-4">Novo Produto</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <input
-            type="text"
-            placeholder="Nome"
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded"
-            required
-          />
-          <input
-            type="number"
-            placeholder="Preço"
-            step="0.01"
-            value={preco}
-            onChange={(e) => setPreco(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded"
-            required
-          />
-          <input
-            type="number"
-            placeholder="Estoque"
-            value={estoque}
-            onChange={(e) => setEstoque(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded"
-            required
-          />
+      {error && <div style={{ color: "red", padding: "0.5rem" }}>{error}</div>}
+
+      <form onSubmit={handleAddProduto} style={{ background: "var(--bg)", padding: "1.5rem", borderRadius: "8px", border: "1px solid var(--border)", boxShadow: "var(--shadow)" }}>
+        <h2 style={{ color: "var(--text-h)", marginBottom: "1rem", marginTop: 0 }}>Novo Produto</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr auto", gap: "1rem", alignItems: "end" }}>
+          <div>
+            <label style={{ display: "block", color: "var(--text)", marginBottom: "0.4rem" }}>Nome</label>
+            <input type="text" value={nome} onChange={(e) => setNome(e.target.value)} style={inputStyle} placeholder="Ex: Ração Premium" required />
+          </div>
+          <div>
+            <label style={{ display: "block", color: "var(--text)", marginBottom: "0.4rem" }}>Preço (R$)</label>
+            <input type="number" step="0.01" min="0" value={preco} onChange={(e) => setPreco(e.target.value)} style={inputStyle} placeholder="0,00" required />
+          </div>
+          <div>
+            <label style={{ display: "block", color: "var(--text)", marginBottom: "0.4rem" }}>Estoque</label>
+            <input type="number" min="0" value={estoque} onChange={(e) => setEstoque(e.target.value)} style={inputStyle} placeholder="0" required />
+          </div>
+          <button type="submit" style={{ background: "var(--accent)", color: "white", padding: "0.75rem 1.5rem", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "600", fontSize: "1rem" }}>
+            Adicionar
+          </button>
         </div>
-        <button
-          type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          Adicionar Produto
-        </button>
       </form>
 
-      <div className="bg-white rounded shadow overflow-hidden">
-        <h2 className="text-2xl font-bold p-6 border-b">Produtos</h2>
-        <table className="w-full">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="px-6 py-3 text-left">Nome</th>
-              <th className="px-6 py-3 text-left">Preço</th>
-              <th className="px-6 py-3 text-left">Estoque</th>
-            </tr>
-          </thead>
-          <tbody>
-            {produtos.map((produto) => (
-              <tr key={produto.id} className="border-b hover:bg-gray-50">
-                <td className="px-6 py-3">{produto.nome}</td>
-                <td className="px-6 py-3">R$ {produto.preco.toFixed(2)}</td>
-                <td className="px-6 py-3">
-                  <span className={`px-3 py-1 rounded ${
-                    produto.estoque > 20 ? "bg-green-200 text-green-800" :
-                    produto.estoque > 5 ? "bg-yellow-200 text-yellow-800" :
-                    "bg-red-200 text-red-800"
-                  }`}>
-                    {produto.estoque}
-                  </span>
-                </td>
+      <div style={{ background: "var(--bg)", borderRadius: "8px", border: "1px solid var(--border)", overflow: "hidden", boxShadow: "var(--shadow)" }}>
+        <h2 style={{ color: "var(--text-h)", padding: "1.5rem", borderBottom: "1px solid var(--border)", margin: 0 }}>Produtos Cadastrados</h2>
+        {loading ? <p style={{ padding: "1rem" }}>Carregando...</p> : (
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ background: "var(--code-bg)" }}>
+                <th style={{ padding: "1rem", textAlign: "left", color: "var(--text)" }}>Nome</th>
+                <th style={{ padding: "1rem", textAlign: "right", color: "var(--text)" }}>Preço</th>
+                <th style={{ padding: "1rem", textAlign: "center", color: "var(--text)" }}>Estoque</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {produtos.length === 0 ? (
+                <tr><td colSpan={3} style={{ padding: "1rem", color: "var(--text)", textAlign: "center" }}>Nenhum produto cadastrado</td></tr>
+              ) : produtos.map((p) => (
+                <tr key={p.id} style={{ borderBottom: "1px solid var(--border)" }}
+                  onMouseOver={(e) => (e.currentTarget.style.background = "var(--accent-bg)")}
+                  onMouseOut={(e) => (e.currentTarget.style.background = "transparent")}>
+                  <td style={{ padding: "1rem", color: "var(--text)" }}>{p.nome}</td>
+                  <td style={{ padding: "1rem", textAlign: "right", color: "var(--text)" }}>R$ {p.preco.toFixed(2)}</td>
+                  <td style={{ padding: "1rem", textAlign: "center" }}>
+                    <span style={{ padding: "0.25rem 0.75rem", borderRadius: "4px", fontWeight: "600",
+                      background: p.estoque > 20 ? "#d1fae5" : p.estoque > 5 ? "#fef3c7" : "#fee2e2",
+                      color: p.estoque > 20 ? "#065f46" : p.estoque > 5 ? "#92400e" : "#991b1b" }}>
+                      {p.estoque}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
