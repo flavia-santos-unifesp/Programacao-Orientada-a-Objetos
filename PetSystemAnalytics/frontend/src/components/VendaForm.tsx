@@ -1,5 +1,6 @@
-import { useState } from "react";
-import type { CreateVendaDTO } from "../types";
+import { useEffect, useState } from "react";
+import type { ClienteResponse, CreateVendaDTO } from "../types";
+import { fetchAPI } from "../services/api";
 
 interface VendaFormProps {
   onSubmit: (data: CreateVendaDTO) => void;
@@ -7,6 +8,13 @@ interface VendaFormProps {
 
 export function VendaForm({ onSubmit }: VendaFormProps) {
   const [clienteId, setClienteId] = useState<string>("");
+  const [clientes, setClientes] = useState<ClienteResponse[]>([]);
+
+  useEffect(() => {
+    fetchAPI<ClienteResponse[]>("/clientes")
+      .then(setClientes)
+      .catch(console.error);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,8 +64,9 @@ export function VendaForm({ onSubmit }: VendaFormProps) {
             required
           >
             <option value="">Selecione um cliente...</option>
-            <option value="1">João Silva</option>
-            <option value="2">Maria Santos</option>
+            {clientes.map((c) => (
+              <option key={c.id} value={c.id}>{c.nome}</option>
+            ))}
           </select>
         </div>
       </div>

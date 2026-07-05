@@ -21,11 +21,23 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+// Helper para mapear campos do banco para o formato do frontend
+function mapCliente(c: any) {
+  return {
+    id: c.id,
+    nome: c.nome,
+    email: c.email,
+    telefone: c.telefone,
+    pontosFidelidade: c.pontos ?? 0,
+    nivelFidelidade: c.nivel ?? "BRONZE",
+  };
+}
+
 // ===== CLIENTES =====
 app.get("/api/clientes", async (req, res) => {
   try {
     const clientes = await prisma.cliente.findMany();
-    res.json(clientes);
+    res.json(clientes.map(mapCliente));
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch clientes" });
   }
@@ -42,7 +54,7 @@ app.post("/api/clientes", async (req, res) => {
     const cliente = await prisma.cliente.create({
       data: { nome, email, telefone },
     });
-    res.status(201).json(cliente);
+    res.status(201).json(mapCliente(cliente));
   } catch (error: any) {
     console.error("Erro ao criar cliente:", error);
     res.status(500).json({ 
