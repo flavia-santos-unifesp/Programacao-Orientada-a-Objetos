@@ -5,6 +5,17 @@ import { prisma } from "./database/prisma";
 const app = express();
 app.use(express.json());
 
+// CORS middleware
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 // Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
@@ -23,12 +34,21 @@ app.get("/api/clientes", async (req, res) => {
 app.post("/api/clientes", async (req, res) => {
   try {
     const { nome, email, telefone } = req.body;
+    
+    if (!nome || !email || !telefone) {
+      return res.status(400).json({ error: "Nome, email e telefone são obrigatórios" });
+    }
+
     const cliente = await prisma.cliente.create({
       data: { nome, email, telefone },
     });
     res.status(201).json(cliente);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to create cliente" });
+  } catch (error: any) {
+    console.error("Erro ao criar cliente:", error);
+    res.status(500).json({ 
+      error: "Failed to create cliente",
+      details: error?.message || String(error)
+    });
   }
 });
 
@@ -45,6 +65,11 @@ app.get("/api/pets", async (req, res) => {
 app.post("/api/pets", async (req, res) => {
   try {
     const { nome, especie, porte, raca, idade, peso, clienteId } = req.body;
+    
+    if (!nome || !especie || !porte || !clienteId) {
+      return res.status(400).json({ error: "Nome, especie, porte e clienteId são obrigatórios" });
+    }
+
     const pet = await prisma.pet.create({
       data: {
         nome,
@@ -57,8 +82,12 @@ app.post("/api/pets", async (req, res) => {
       },
     });
     res.status(201).json(pet);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to create pet" });
+  } catch (error: any) {
+    console.error("Erro ao criar pet:", error);
+    res.status(500).json({ 
+      error: "Failed to create pet",
+      details: error?.message || String(error)
+    });
   }
 });
 
@@ -75,12 +104,21 @@ app.get("/api/produtos", async (req, res) => {
 app.post("/api/produtos", async (req, res) => {
   try {
     const { nome, preco, estoque } = req.body;
+    
+    if (!nome || preco === undefined || estoque === undefined) {
+      return res.status(400).json({ error: "Nome, preco e estoque são obrigatórios" });
+    }
+
     const produto = await prisma.produto.create({
-      data: { nome, preco, estoque },
+      data: { nome, preco: parseFloat(preco), estoque: parseInt(estoque) },
     });
     res.status(201).json(produto);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to create produto" });
+  } catch (error: any) {
+    console.error("Erro ao criar produto:", error);
+    res.status(500).json({ 
+      error: "Failed to create produto",
+      details: error?.message || String(error)
+    });
   }
 });
 
@@ -99,6 +137,11 @@ app.get("/api/vendas", async (req, res) => {
 app.post("/api/vendas", async (req, res) => {
   try {
     const { clienteId, data, subtotal = 0, desconto = 0, total = 0 } = req.body;
+    
+    if (!clienteId) {
+      return res.status(400).json({ error: "clienteId é obrigatório" });
+    }
+
     const venda = await prisma.venda.create({
       data: {
         clienteId: parseInt(clienteId),
@@ -109,8 +152,12 @@ app.post("/api/vendas", async (req, res) => {
       },
     });
     res.status(201).json(venda);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to create venda" });
+  } catch (error: any) {
+    console.error("Erro ao criar venda:", error);
+    res.status(500).json({ 
+      error: "Failed to create venda",
+      details: error?.message || String(error)
+    });
   }
 });
 
