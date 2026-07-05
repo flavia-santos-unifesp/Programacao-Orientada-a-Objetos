@@ -1,5 +1,6 @@
-import { useState } from "react";
-import type { CreatePetDTO, Especie, Porte } from "../types";
+import { useEffect, useState } from "react";
+import type { ClienteResponse, CreatePetDTO, Especie, Porte } from "../types";
+import { fetchAPI } from "../services/api";
 
 interface PetFormProps {
   clienteId?: number;
@@ -7,6 +8,7 @@ interface PetFormProps {
 }
 
 export function PetForm({ clienteId, onSubmit }: PetFormProps) {
+  const [clientes, setClientes] = useState<ClienteResponse[]>([]);
   const [formData, setFormData] = useState<Partial<CreatePetDTO>>({
     nome: "",
     especie: "CACHORRO",
@@ -17,8 +19,18 @@ export function PetForm({ clienteId, onSubmit }: PetFormProps) {
     clienteId: clienteId || 0,
   });
 
+  useEffect(() => {
+    fetchAPI<ClienteResponse[]>("/clientes")
+      .then(setClientes)
+      .catch(console.error);
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.clienteId) {
+      alert("Selecione um cliente");
+      return;
+    }
     onSubmit(formData as CreatePetDTO);
     setFormData({
       nome: "",
@@ -55,6 +67,21 @@ export function PetForm({ clienteId, onSubmit }: PetFormProps) {
       boxShadow: "var(--shadow)"
     }}>
       <h2 style={{ color: "var(--text-h)", marginBottom: "1rem" }}>Novo Pet</h2>
+
+      <div style={{ marginBottom: "1rem" }}>
+        <label style={{ display: "block", color: "var(--text)", marginBottom: "0.5rem" }}>Cliente</label>
+        <select
+          value={formData.clienteId || ""}
+          onChange={(e) => setFormData({ ...formData, clienteId: parseInt(e.target.value) })}
+          style={{ padding: "0.75rem", border: "1px solid var(--border)", borderRadius: "4px", fontFamily: "var(--sans)", fontSize: "1rem", color: "var(--text)", background: "var(--bg)", width: "100%" }}
+          required
+        >
+          <option value="">Selecione um cliente...</option>
+          {clientes.map((c) => (
+            <option key={c.id} value={c.id}>{c.nome}</option>
+          ))}
+        </select>
+      </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
         <div>

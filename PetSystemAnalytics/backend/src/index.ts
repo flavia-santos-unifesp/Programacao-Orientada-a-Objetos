@@ -78,7 +78,7 @@ app.post("/api/pets", async (req, res) => {
   try {
     const { nome, especie, porte, raca, idade, peso, clienteId } = req.body;
     
-    if (!nome || !especie || !porte || !clienteId) {
+    if (!nome || !especie || !porte || !clienteId || parseInt(clienteId) === 0) {
       return res.status(400).json({ error: "Nome, especie, porte e clienteId são obrigatórios" });
     }
 
