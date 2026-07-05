@@ -1,4 +1,4 @@
-import type { ClienteResponse, PetResponse, ProdutoResponse, VendaResponse, KPIResponse, Especie, Porte, NivelFidelidade } from "../types";
+import type { ClienteResponse, PetResponse, ProdutoResponse, VendaResponse, KPIResponse } from "../types";
 
 export const mockClientes: ClienteResponse[] = [
   {
