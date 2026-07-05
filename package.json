@@ -1,0 +1,9 @@
+{
+  "name": "pet-system-analytics",
+  "version": "1.0.0",
+  "description": "Pet System Analytics - Frontend and Backend",
+  "scripts": {
+    "build": "cd PetSystemAnalytics/backend && npm install && npm run build",
+    "start": "node PetSystemAnalytics/backend/dist/index.js"
+  }
+}

@@ -1,5 +1,0 @@
-{
-  "buildCommand": "cd PetSystemAnalytics/backend && npm install && npm run build && mkdir -p /app && cp -r dist /app/",
-  "startCommand": "node /app/dist/index.js"
-}
-
