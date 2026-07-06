@@ -49,6 +49,13 @@ enum TipoItem {
   SERVICO
 }
 
+enum StatusAgendamento {
+  PENDENTE
+  CONFIRMADO
+  REALIZADO
+  CANCELADO
+}
+
 //
 // MODELS
 //
@@ -152,7 +159,48 @@ model ItemVenda {
   petId          Int?
   pet            Pet?           @relation(fields: [petId], references: [id])
 
+  agendamento    Agendamento?
+
   @@index([tipo])
   @@index([servico])
+
+}
+
+model Funcionario {
+
+  id          Int               @id @default(autoincrement())
+
+  nome        String
+  telefone    String
+  email       String            @unique
+
+  cargo       String
+
+  agendamentos  Agendamento[]
+
+  @@index([nome])
+  @@index([cargo])
+
+}
+
+model Agendamento {
+
+  id            Int               @id @default(autoincrement())
+
+  dataHora      DateTime
+
+  duracao       Int               @default(60)
+
+  status        StatusAgendamento @default(PENDENTE)
+
+  funcionarioId Int
+  funcionario   Funcionario       @relation(fields: [funcionarioId], references: [id])
+
+  itemVendaId   Int               @unique
+  itemVenda     ItemVenda         @relation(fields: [itemVendaId], references: [id])
+
+  @@index([dataHora])
+  @@index([status])
+  @@index([funcionarioId])
 
 }
