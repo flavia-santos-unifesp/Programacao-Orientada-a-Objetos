@@ -9,11 +9,12 @@ import { Pets } from "./pages/Pets";
 import { Vendas } from "./pages/Vendas";
 import { Funcionarios } from "./pages/Funcionarios";
 import { Agenda } from "./pages/Agenda";
+import { ComprarServico } from "./pages/ComprarServico";
 import { mockKPIs } from "./data/mockData";
 import type { KPIResponse } from "./types";
 import "./App.css";
 
-type Page = "dashboard" | "clientes" | "produtos" | "servicos" | "pets" | "vendas" | "funcionarios" | "agenda" | "projeto" | "equipe";
+type Page = "dashboard" | "clientes" | "produtos" | "servicos" | "pets" | "vendas" | "funcionarios" | "agenda" | "comprar-servico" | "projeto" | "equipe";
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>("dashboard");
@@ -49,6 +50,7 @@ export default function App() {
               { id: "produtos", icon: "📦", label: "Produtos" },
               { id: "servicos", icon: "🐾", label: "Serviços" },
               { id: "vendas", icon: "🛒", label: "Vendas" },
+              { id: "comprar-servico", icon: "💇", label: "Agendar Serviço" },
               { id: "funcionarios", icon: "👔", label: "Funcionários" },
               { id: "agenda", icon: "📅", label: "Agenda" },
               { id: "projeto", icon: "📋", label: "O Projeto" },
@@ -91,6 +93,7 @@ export default function App() {
           {currentPage === "servicos" && <Servicos />}
           {currentPage === "pets" && <Pets />}
           {currentPage === "vendas" && <Vendas />}
+          {currentPage === "comprar-servico" && <ComprarServico />}
           {currentPage === "funcionarios" && <Funcionarios />}
           {currentPage === "agenda" && <Agenda />}
           {currentPage === "projeto" && <OProjeto />}

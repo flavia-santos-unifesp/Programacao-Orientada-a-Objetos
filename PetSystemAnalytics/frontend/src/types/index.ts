@@ -66,6 +66,8 @@ export interface CreateItemVendaDTO {
   servico?: TipoServico;
   quantidade: number;
   petId?: number;
+  dataHora?: string; // ISO format for scheduled services
+  funcionarioId?: number; // Only for services
 }
 
 export interface CreateVendaDTO {

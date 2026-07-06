@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import { prisma } from "./database/prisma";
 import { RelatorioAgenda } from "./reports/RelatorioAgenda";
+import { DisponibilidadeService } from "./services/DisponibilidadeService";
 
 const app = express();
 app.use(express.json());
@@ -172,7 +173,7 @@ app.post("/api/vendas", async (req, res) => {
 
     // Calcular subtotal
     const subtotal = itens.reduce((acc: number, item: any) => {
-      return acc + parseFloat(item.precoUnitario) * parseInt(item.quantidade);
+      return acc + parseFloat(item.precoUnitario || item.preco || 0) * parseInt(item.quantidade);
     }, 0);
 
     const desconto = subtotal * percentualDesconto;
@@ -191,7 +192,7 @@ app.post("/api/vendas", async (req, res) => {
             create: itens.map((item: any) => ({
               tipo: item.tipo,
               quantidade: parseInt(item.quantidade),
-              precoUnitario: parseFloat(item.precoUnitario),
+              precoUnitario: parseFloat(item.precoUnitario || item.preco || 0),
               produtoId: item.produtoId ? parseInt(item.produtoId) : null,
               servico: item.servico || null,
               petId: item.petId ? parseInt(item.petId) : null,
@@ -207,6 +208,27 @@ app.post("/api/vendas", async (req, res) => {
           await tx.produto.update({
             where: { id: parseInt(item.produtoId) },
             data: { estoque: { decrement: parseInt(item.quantidade) } },
+          });
+        }
+      }
+
+      // Criar agendamentos para serviços
+      for (let i = 0; i < novaVenda.itens.length; i++) {
+        const item = itens[i];
+        const itemVendaCriado = novaVenda.itens[i];
+        
+        if (item.servico && item.dataHora && item.funcionarioId && itemVendaCriado) {
+          const dataHora = new Date(item.dataHora);
+          const duracao = item.duracao || 60; // Padrão 60 minutos
+
+          await tx.agendamento.create({
+            data: {
+              dataHora,
+              duracao,
+              status: "PENDENTE",
+              funcionarioId: parseInt(item.funcionarioId),
+              itemVendaId: itemVendaCriado.id,
+            },
           });
         }
       }
@@ -677,6 +699,69 @@ app.get("/api/agendamentos/funcionario/:funcionarioId/data/:data", async (req, r
     res.json(agendamentos);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch agendamentos" });
+  }
+});
+
+// Endpoint de disponibilidade - DEVE VIR ANTES de /:id
+app.get("/api/agendamentos/disponibilidade/:tipoServico", async (req, res) => {
+  try {
+    const { tipoServico } = req.params;
+    const { dataHora, duracao } = req.query;
+
+    if (!dataHora || !duracao) {
+      return res.status(400).json({ 
+        error: "dataHora e duracao são obrigatórios (query parameters)"
+      });
+    }
+
+    const disponibilidadeService = new DisponibilidadeService();
+    const dataHoraDate = new Date(dataHora as string);
+    const durationMinutes = parseInt(duracao as string);
+
+    const funcionariosDisponiveis = await disponibilidadeService.listarFuncionariosDisponiveis(
+      tipoServico as any,
+      dataHoraDate,
+      durationMinutes
+    );
+
+    res.json(funcionariosDisponiveis);
+  } catch (error: any) {
+    console.error("Erro ao listar disponibilidade:", error);
+    res.status(500).json({ 
+      error: "Failed to list available employees",
+      details: error?.message || String(error)
+    });
+  }
+});
+
+app.get("/api/agendamentos/sugerir-horarios/:tipoServico", async (req, res) => {
+  try {
+    const { tipoServico } = req.params;
+    const { duracao, quantidade } = req.query;
+
+    if (!duracao) {
+      return res.status(400).json({ 
+        error: "duracao é obrigatória (query parameter)"
+      });
+    }
+
+    const disponibilidadeService = new DisponibilidadeService();
+    const durationMinutes = parseInt(duracao as string);
+    const qtd = quantidade ? parseInt(quantidade as string) : 5;
+
+    const horarios = await disponibilidadeService.sugerirProximosHorarios(
+      tipoServico as any,
+      durationMinutes,
+      qtd
+    );
+
+    res.json({ horarios });
+  } catch (error: any) {
+    console.error("Erro ao sugerir horários:", error);
+    res.status(500).json({ 
+      error: "Failed to suggest time slots",
+      details: error?.message || String(error)
+    });
   }
 });
 
