@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { fetchAPI } from '../services/api';
+import { useEffect, useMemo, useState } from "react";
+import { fetchAPI } from "../services/api";
 
 interface Funcionario {
   id: number;
@@ -11,339 +11,391 @@ interface Agendamento {
   id: number;
   dataHora: string;
   duracao: number;
-  status: 'PENDENTE' | 'CONFIRMADO' | 'REALIZADO' | 'CANCELADO';
+  status: "PENDENTE" | "CONFIRMADO" | "REALIZADO" | "CANCELADO";
+  funcionarioId: number;
   funcionario: Funcionario;
   itemVenda?: {
     id: number;
     tipo: string;
-    cliente: {
+    servico?: string;
+    pet?: {
       nome: string;
-      pet: {
+      cliente?: {
         nome: string;
-        especie: string;
       };
     };
   };
 }
 
-interface RelatorioAgendaData {
-  periodoDe: string;
-  periodoAte: string;
-  totalAgendamentos: number;
-  porStatus: Record<string, number>;
-  porFuncionario: Array<{
-    funcionarioId: number;
-    funcionarioNome: string;
-    cargo: string;
-    total: number;
-    porStatus: Record<string, number>;
-    agendamentos: Agendamento[];
-  }>;
+interface DayColumn {
+  date: Date;
+  label: string;
+  key: string;
+}
+
+const HORA_INICIO = 8;
+const HORA_FIM = 17;
+const SLOT_MINUTOS = 15;
+const PIXELS_POR_HORA = 64;
+const WORK_MINUTES = (HORA_FIM - HORA_INICIO) * 60;
+
+const diasSemanaPt = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
+
+function getStartOfWeek(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day; // segunda como início
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function addDays(date: Date, days: number): Date {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function formatDateKey(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function formatHourMinute(minutesFromStart: number): string {
+  const total = HORA_INICIO * 60 + minutesFromStart;
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+function getMinutesFromStart(date: Date): number {
+  return date.getHours() * 60 + date.getMinutes() - HORA_INICIO * 60;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+function statusColor(status: Agendamento["status"]): string {
+  switch (status) {
+    case "PENDENTE":
+      return "#f59e0b";
+    case "CONFIRMADO":
+      return "#0ea5e9";
+    case "REALIZADO":
+      return "#22c55e";
+    case "CANCELADO":
+      return "#ef4444";
+    default:
+      return "#64748b";
+  }
+}
+
+function getServicoLabel(ag: Agendamento): string {
+  if (ag.itemVenda?.servico) return ag.itemVenda.servico;
+  if (ag.itemVenda?.tipo) return ag.itemVenda.tipo;
+  return "Serviço";
 }
 
 export function Agenda() {
   const [funcionarios, setFuncionarios] = useState<Funcionario[]>([]);
-  const [selectedFuncionario, setSelectedFuncionario] = useState<number | null>(null);
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
-  const [relatorio, setRelatorio] = useState<RelatorioAgendaData | null>(null);
+  const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
+  const [selectedFuncionario, setSelectedFuncionario] = useState<number | "all">("all");
+  const [weekStart, setWeekStart] = useState<Date>(getStartOfWeek(new Date()));
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    carregarFuncionarios();
+    const carregarDados = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const [funcs, ags] = await Promise.all([
+          fetchAPI<Funcionario[]>("/funcionarios"),
+          fetchAPI<Agendamento[]>("/agendamentos"),
+        ]);
+
+        setFuncionarios(funcs);
+        setAgendamentos(ags.filter((a) => a.status !== "CANCELADO"));
+      } catch (err: any) {
+        console.error(err);
+        setError(err?.message || "Erro ao carregar agenda");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    carregarDados();
   }, []);
 
-  const carregarFuncionarios = async () => {
-    try {
-      const data = await fetchAPI<Funcionario[]>('/funcionarios');
-      setFuncionarios(data);
-      if (data.length > 0) {
-        setSelectedFuncionario(data[0].id);
-      }
-    } catch (err: any) {
-      setError('Erro ao carregar funcionários.');
-      console.error('Erro:', err);
+  const days: DayColumn[] = useMemo(() => {
+    return Array.from({ length: 7 }).map((_, i) => {
+      const date = addDays(weekStart, i);
+      return {
+        date,
+        key: formatDateKey(date),
+        label: `${diasSemanaPt[date.getDay()]} ${String(date.getDate()).padStart(2, "0")}`,
+      };
+    });
+  }, [weekStart]);
+
+  const weekEnd = useMemo(() => addDays(weekStart, 6), [weekStart]);
+
+  const filteredAgendamentos = useMemo(() => {
+    const start = new Date(weekStart);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(weekEnd);
+    end.setHours(23, 59, 59, 999);
+
+    return agendamentos.filter((a) => {
+      const d = new Date(a.dataHora);
+      const inWeek = d >= start && d <= end;
+      const byFunc = selectedFuncionario === "all" || a.funcionarioId === selectedFuncionario;
+      return inWeek && byFunc;
+    });
+  }, [agendamentos, selectedFuncionario, weekStart, weekEnd]);
+
+  const agendaByFuncionario = useMemo(() => {
+    const base = (selectedFuncionario === "all"
+      ? funcionarios
+      : funcionarios.filter((f) => f.id === selectedFuncionario)
+    ).map((f) => ({ funcionario: f, eventos: [] as Agendamento[] }));
+
+    for (const item of base) {
+      item.eventos = filteredAgendamentos
+        .filter((ag) => ag.funcionarioId === item.funcionario.id)
+        .sort((a, b) => new Date(a.dataHora).getTime() - new Date(b.dataHora).getTime());
     }
-  };
 
-  const carregarRelatorio = async () => {
-    if (!selectedFuncionario || !startDate || !endDate) {
-      setError('Selecione funcionário e período.');
-      return;
-    }
+    return base;
+  }, [funcionarios, filteredAgendamentos, selectedFuncionario]);
 
-    try {
-      setLoading(true);
-      setError('');
-      const data = await fetchAPI<RelatorioAgendaData>(
-        `/relatorios/agenda/funcionario/${selectedFuncionario}?dataInicio=${startDate}&dataFim=${endDate}`
-      );
-      setRelatorio(data);
-    } catch (err: any) {
-      setError(err.message || 'Erro ao carregar relatório.');
-      console.error('Erro:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const ticks = useMemo(() => {
+    const t: number[] = [];
+    for (let m = 0; m <= WORK_MINUTES; m += SLOT_MINUTOS) t.push(m);
+    return t;
+  }, []);
 
-  const mudarStatus = async (agendamentoId: number, novoStatus: string) => {
-    try {
-      await fetchAPI(`/agendamentos/${agendamentoId}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status: novoStatus }),
-      });
-      await carregarRelatorio();
-    } catch (err: any) {
-      setError(err.message || 'Erro ao atualizar status.');
-    }
-  };
+  const gridHeight = ((HORA_FIM - HORA_INICIO) * PIXELS_POR_HORA);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'PENDENTE':
-        return '#ffc107'; // amarelo
-      case 'CONFIRMADO':
-        return '#17a2b8'; // azul
-      case 'REALIZADO':
-        return '#28a745'; // verde
-      case 'CANCELADO':
-        return '#dc3545'; // vermelho
-      default:
-        return '#6c757d'; // cinza
-    }
-  };
-
-  const containerStyle: React.CSSProperties = {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '2rem',
-    background: 'linear-gradient(135deg, var(--bg) 0%, #f5f7fa 100%)',
-    borderRadius: '12px',
-  };
-
-  const filterStyle: React.CSSProperties = {
-    background: 'var(--bg)',
-    padding: '2rem',
-    borderRadius: '8px',
-    border: '1px solid var(--border)',
-    marginBottom: '2rem',
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr 1fr 1fr',
-    gap: '1rem',
-    alignItems: 'end',
+  const headerStyle: React.CSSProperties = {
+    display: "flex",
+    gap: "0.75rem",
+    flexWrap: "wrap",
+    alignItems: "end",
+    background: "var(--bg)",
+    border: "1px solid var(--border)",
+    borderRadius: "10px",
+    padding: "1rem",
+    marginBottom: "1rem",
   };
 
   const inputStyle: React.CSSProperties = {
-    width: '100%',
-    padding: '0.75rem',
-    border: '1px solid var(--border)',
-    borderRadius: '4px',
-    background: 'var(--input-bg)',
-    color: 'var(--text)',
+    padding: "0.6rem",
+    border: "1px solid var(--border)",
+    borderRadius: "6px",
+    fontFamily: "var(--sans)",
+    background: "var(--bg)",
+    color: "var(--text)",
   };
 
-  const buttonStyle: React.CSSProperties = {
-    background: 'var(--accent)',
-    color: 'white',
-    padding: '0.75rem 2rem',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '1rem',
-  };
-
-  const agendamentoStyle = (status: string): React.CSSProperties => ({
-    background: `${getStatusColor(status)}20`,
-    border: `2px solid ${getStatusColor(status)}`,
-    borderLeft: `4px solid ${getStatusColor(status)}`,
-    padding: '1rem',
-    marginBottom: '1rem',
-    borderRadius: '6px',
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr 1fr auto',
-    gap: '1rem',
-    alignItems: 'center',
-  });
-
-  const statusBadgeStyle = (status: string): React.CSSProperties => ({
-    background: getStatusColor(status),
-    color: 'white',
-    padding: '0.25rem 0.75rem',
-    borderRadius: '20px',
-    fontSize: '0.85rem',
-    fontWeight: 'bold',
-    whiteSpace: 'nowrap',
-  });
-
-  const buttonGroupStyle: React.CSSProperties = {
-    display: 'flex',
-    gap: '0.5rem',
-  };
-
-  const smallButtonStyle = (bg: string): React.CSSProperties => ({
-    background: bg,
-    color: 'white',
-    padding: '0.4rem 0.8rem',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    fontSize: '0.85rem',
-  });
+  const titleRange = `${weekStart.toLocaleDateString("pt-BR")} - ${weekEnd.toLocaleDateString("pt-BR")}`;
 
   return (
-    <div style={containerStyle}>
-      <h1 style={{ color: 'var(--accent)', marginTop: 0 }}>📅 Agenda de Serviços</h1>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+      <h1 style={{ color: "var(--text-h)", margin: 0 }}>📅 Agenda de Serviços</h1>
+      <p style={{ margin: 0, color: "var(--text-muted)" }}>
+        Visualização semanal por funcionário, com blocos de alocação e espaços livres para disponibilidade.
+      </p>
 
       {error && (
-        <div style={{ background: '#f8d7da', color: '#721c24', padding: '1rem', borderRadius: '4px', marginBottom: '1rem' }}>
+        <div style={{ background: "#fee", color: "#b00020", border: "1px solid #f5a5a5", padding: "0.8rem", borderRadius: "8px" }}>
           ❌ {error}
         </div>
       )}
 
-      <div style={filterStyle}>
+      <div style={headerStyle}>
         <div>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Funcionário:</label>
+          <label style={{ display: "block", marginBottom: "0.35rem", color: "var(--text)", fontWeight: 600 }}>
+            Funcionário
+          </label>
           <select
-            value={selectedFuncionario || ''}
-            onChange={(e) => setSelectedFuncionario(parseInt(e.target.value))}
+            value={selectedFuncionario}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSelectedFuncionario(value === "all" ? "all" : parseInt(value));
+            }}
             style={inputStyle}
           >
-            {funcionarios.map(f => (
-              <option key={f.id} value={f.id}>
-                {f.nome} ({f.cargo})
-              </option>
+            <option value="all">Todos</option>
+            {funcionarios.map((f) => (
+              <option key={f.id} value={f.id}>{f.nome} ({f.cargo})</option>
             ))}
           </select>
         </div>
 
         <div>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>De:</label>
+          <label style={{ display: "block", marginBottom: "0.35rem", color: "var(--text)", fontWeight: 600 }}>
+            Semana
+          </label>
           <input
             type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
+            value={formatDateKey(weekStart)}
+            onChange={(e) => setWeekStart(getStartOfWeek(new Date(`${e.target.value}T00:00:00`)))}
             style={inputStyle}
           />
         </div>
 
-        <div>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>Até:</label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            style={inputStyle}
-          />
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <button
+            onClick={() => setWeekStart((prev) => addDays(prev, -7))}
+            style={{ ...inputStyle, cursor: "pointer" }}
+          >
+            ◀ Semana anterior
+          </button>
+          <button
+            onClick={() => setWeekStart((prev) => addDays(prev, 7))}
+            style={{ ...inputStyle, cursor: "pointer" }}
+          >
+            Próxima semana ▶
+          </button>
         </div>
 
-        <button
-          onClick={carregarRelatorio}
-          disabled={loading}
-          style={buttonStyle}
-        >
-          {loading ? '⏳ Carregando...' : '🔍 Buscar'}
-        </button>
+        <div style={{ marginLeft: "auto", color: "var(--text)", fontWeight: 600 }}>
+          {titleRange}
+        </div>
       </div>
 
-      {relatorio && (
-        <div>
-          <div style={{ background: 'var(--bg)', padding: '1.5rem', borderRadius: '8px', marginBottom: '2rem', border: '1px solid var(--border)' }}>
-            <h2 style={{ color: 'var(--accent)', marginTop: 0 }}>Resumo</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
-              <div>
-                <div style={{ fontSize: '0.9rem', color: '#666' }}>Total de Agendamentos</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--accent)' }}>
-                  {relatorio.totalAgendamentos}
-                </div>
+      {loading ? (
+        <p>Carregando agenda...</p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+          {agendaByFuncionario.map(({ funcionario, eventos }) => (
+            <div
+              key={funcionario.id}
+              style={{
+                border: "1px solid var(--border)",
+                borderRadius: "10px",
+                background: "var(--bg)",
+                overflow: "hidden",
+              }}
+            >
+              <div style={{ padding: "0.9rem 1rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <strong style={{ color: "var(--text-h)" }}>👤 {funcionario.nome}</strong>
+                <span style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>{funcionario.cargo}</span>
               </div>
-              {Object.entries(relatorio.porStatus || {}).map(([status, count]) => (
-                <div key={status}>
-                  <div style={{ fontSize: '0.9rem', color: '#666' }}>{status}</div>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: getStatusColor(status) }}>
-                    {count}
-                  </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "90px repeat(7, 1fr)", minHeight: gridHeight + 48 }}>
+                <div style={{ borderRight: "1px solid var(--border)", position: "relative", background: "var(--code-bg)" }}>
+                  {Array.from({ length: HORA_FIM - HORA_INICIO + 1 }).map((_, i) => {
+                    const hour = HORA_INICIO + i;
+                    const top = (i * PIXELS_POR_HORA);
+                    return (
+                      <div
+                        key={hour}
+                        style={{
+                          position: "absolute",
+                          top,
+                          left: 0,
+                          right: 0,
+                          transform: "translateY(-50%)",
+                          fontSize: "0.8rem",
+                          color: "var(--text-muted)",
+                          textAlign: "center",
+                        }}
+                      >
+                        {String(hour).padStart(2, "0")}:00
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
-          </div>
 
-          {relatorio.porFuncionario?.map(func => (
-            <div key={func.funcionarioId} style={{ marginBottom: '2rem' }}>
-              <h3 style={{ color: 'var(--accent)', background: 'var(--bg)', padding: '1rem', borderRadius: '6px', border: '1px solid var(--border)' }}>
-                👤 {func.funcionarioNome} ({func.cargo})
-              </h3>
+                {days.map((day) => {
+                  const dayEvents = eventos.filter((ev) => formatDateKey(new Date(ev.dataHora)) === day.key);
 
-              {func.agendamentos.length === 0 ? (
-                <div style={{ background: '#e7f3ff', color: '#004085', padding: '1rem', borderRadius: '4px', marginBottom: '1rem' }}>
-                  ℹ️ Nenhum agendamento neste período.
-                </div>
-              ) : (
-                func.agendamentos.map(agendamento => (
-                  <div key={agendamento.id} style={agendamentoStyle(agendamento.status)}>
-                    <div>
-                      <div style={{ fontSize: '0.85rem', color: '#666' }}>Horário</div>
-                      <div style={{ fontWeight: 'bold' }}>
-                        {new Date(agendamento.dataHora).toLocaleString('pt-BR')}
+                  return (
+                    <div key={day.key} style={{ borderRight: "1px solid var(--border)", position: "relative" }}>
+                      <div style={{ height: 38, borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, color: "var(--text-h)", background: "var(--code-bg)" }}>
+                        {day.label}
                       </div>
-                      <div style={{ fontSize: '0.85rem', color: '#666' }}>
-                        ⏱️ {agendamento.duracao} minutos
+
+                      <div style={{ position: "relative", height: gridHeight }}>
+                        {ticks.map((m) => (
+                          <div
+                            key={m}
+                            style={{
+                              position: "absolute",
+                              top: (m / 60) * PIXELS_POR_HORA,
+                              left: 0,
+                              right: 0,
+                              borderTop: m % 60 === 0 ? "1px solid rgba(125,125,125,0.25)" : "1px dashed rgba(125,125,125,0.12)",
+                            }}
+                          />
+                        ))}
+
+                        {dayEvents.length === 0 && (
+                          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", fontSize: "0.8rem" }}>
+                            Disponível
+                          </div>
+                        )}
+
+                        {dayEvents.map((ev) => {
+                          const inicio = new Date(ev.dataHora);
+                          const startMinutesRaw = getMinutesFromStart(inicio);
+                          const startMinutes = clamp(startMinutesRaw, 0, WORK_MINUTES);
+                          const duration = clamp(ev.duracao, SLOT_MINUTOS, WORK_MINUTES - startMinutes);
+
+                          const top = (startMinutes / 60) * PIXELS_POR_HORA;
+                          const height = Math.max((duration / 60) * PIXELS_POR_HORA, 20);
+
+                          const cliente = ev.itemVenda?.pet?.cliente?.nome || "Cliente";
+                          const pet = ev.itemVenda?.pet?.nome || "Pet";
+                          const servico = getServicoLabel(ev);
+                          const cor = statusColor(ev.status);
+
+                          return (
+                            <div
+                              key={ev.id}
+                              title={`${servico} | ${cliente} - ${pet}`}
+                              style={{
+                                position: "absolute",
+                                left: 6,
+                                right: 6,
+                                top,
+                                height,
+                                background: `${cor}33`,
+                                border: `1px solid ${cor}`,
+                                borderLeft: `4px solid ${cor}`,
+                                borderRadius: 8,
+                                padding: "0.25rem 0.35rem",
+                                overflow: "hidden",
+                                color: "var(--text-h)",
+                                fontSize: "0.75rem",
+                                lineHeight: 1.2,
+                              }}
+                            >
+                              <div style={{ fontWeight: 700, whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
+                                {servico}
+                              </div>
+                              <div style={{ opacity: 0.9, whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
+                                {cliente} • {pet}
+                              </div>
+                              <div style={{ opacity: 0.75 }}>
+                                {inicio.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                                {" - "}
+                                {formatHourMinute(startMinutes + duration)}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
-
-                    <div>
-                      <div style={{ fontSize: '0.85rem', color: '#666' }}>Cliente / Pet</div>
-                      <div style={{ fontWeight: 'bold' }}>
-                        {agendamento.itemVenda?.cliente?.nome || 'N/A'}
-                      </div>
-                      <div style={{ fontSize: '0.85rem', color: '#666' }}>
-                        🐾 {agendamento.itemVenda?.cliente?.pet?.nome} ({agendamento.itemVenda?.cliente?.pet?.especie})
-                      </div>
-                    </div>
-
-                    <div>
-                      <div style={{ fontSize: '0.85rem', color: '#666' }}>Serviço</div>
-                      <div style={{ fontWeight: 'bold' }}>
-                        {agendamento.itemVenda?.tipo || 'N/A'}
-                      </div>
-                    </div>
-
-                    <div style={buttonGroupStyle}>
-                      <div style={statusBadgeStyle(agendamento.status)}>
-                        {agendamento.status}
-                      </div>
-
-                      {agendamento.status === 'PENDENTE' && (
-                        <button
-                          onClick={() => mudarStatus(agendamento.id, 'CONFIRMADO')}
-                          style={smallButtonStyle('#17a2b8')}
-                        >
-                          ✓ Confirmar
-                        </button>
-                      )}
-
-                      {agendamento.status === 'CONFIRMADO' && (
-                        <button
-                          onClick={() => mudarStatus(agendamento.id, 'REALIZADO')}
-                          style={smallButtonStyle('#28a745')}
-                        >
-                          ✓ Realizado
-                        </button>
-                      )}
-
-                      {agendamento.status !== 'CANCELADO' && agendamento.status !== 'REALIZADO' && (
-                        <button
-                          onClick={() => mudarStatus(agendamento.id, 'CANCELADO')}
-                          style={smallButtonStyle('#dc3545')}
-                        >
-                          ✕ Cancelar
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
+                  );
+                })}
+              </div>
             </div>
           ))}
         </div>
