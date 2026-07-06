@@ -233,6 +233,57 @@ app.post("/api/vendas", async (req, res) => {
   }
 });
 
+// ===== CALCULAR PREÇOS DE SERVIÇOS =====
+app.get("/api/servicos/preco/:petId/:tipo", async (req, res) => {
+  try {
+    const { petId, tipo } = req.params;
+    const pet = await prisma.pet.findUnique({ where: { id: parseInt(petId) } });
+    
+    if (!pet) {
+      return res.status(404).json({ error: "Pet não encontrado" });
+    }
+
+    let preco = 0;
+    let duracao = 0;
+
+    // Tabela de preços baseada em peso/porte
+    if (tipo === "BANHO") {
+      // Banho usa PESO
+      if (pet.peso <= 5) {
+        preco = 40; duracao = 30;
+      } else if (pet.peso <= 15) {
+        preco = 60; duracao = 45;
+      } else {
+        preco = 90; duracao = 60;
+      }
+    } else if (tipo === "TOSA") {
+      // Tosa usa PORTE
+      if (pet.porte === "PEQUENO") {
+        preco = 50; duracao = 40;
+      } else if (pet.porte === "MEDIO") {
+        preco = 80; duracao = 60;
+      } else if (pet.porte === "GRANDE") {
+        preco = 110; duracao = 80;
+      }
+    } else if (tipo === "CONSULTA") {
+      preco = 120; duracao = 30;
+    } else if (tipo === "HOSPEDAGEM") {
+      // Hospedagem usa PORTE (por dia)
+      if (pet.porte === "PEQUENO") {
+        preco = 80;
+      } else if (pet.porte === "MEDIO") {
+        preco = 100;
+      } else if (pet.porte === "GRANDE") {
+        preco = 140;
+      }
+    }
+
+    res.json({ preco, duracao, pet: { nome: pet.nome, porte: pet.porte, peso: pet.peso } });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to calculate service price" });
+  }
+});
+
 const PORT = parseInt(process.env.PORT || "3000");
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Backend rodando na porta ${PORT}`);

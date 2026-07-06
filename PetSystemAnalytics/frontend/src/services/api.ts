@@ -1,4 +1,6 @@
-const API_BASE_URL = "https://programacao-orientada-a-objetos-production.up.railway.app/api";
+const API_BASE_URL = window.location.hostname === 'localhost'
+  ? "http://localhost:3000/api" 
+  : "https://programacao-orientada-a-objetos-production.up.railway.app/api";
 
 export async function fetchAPI<T>(
   endpoint: string,

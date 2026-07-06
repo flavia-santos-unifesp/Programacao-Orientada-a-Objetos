@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import type { ClienteResponse, ProdutoResponse, TipoServico } from "../types";
+import type { ClienteResponse, ProdutoResponse, TipoServico, PetResponse } from "../types";
 import { fetchAPI } from "../services/api";
 
 interface ItemForm {
   tipo: "PRODUTO" | "SERVICO";
   produtoId?: number;
   servico?: TipoServico;
+  petId?: number;
   quantidade: number;
   precoUnitario: number;
 }
@@ -19,28 +20,56 @@ interface VendaFormProps {
   onSubmit: (data: VendaFormData) => void;
 }
 
-const PRECOS_SERVICOS: Record<TipoServico, number> = {
-  BANHO: 50,
-  TOSA: 70,
-  CONSULTA: 120,
-  HOSPEDAGEM: 80,
+const PRECOS_SERVICOS_PADRAO: Record<TipoServico, { min: number; max: number; fixo?: number }> = {
+  BANHO: { min: 40, max: 90 },
+  TOSA: { min: 50, max: 110 },
+  CONSULTA: { min: 120, max: 120, fixo: 120 },
+  HOSPEDAGEM: { min: 80, max: 140 },
 };
 
 export function VendaForm({ onSubmit }: VendaFormProps) {
   const [clienteId, setClienteId] = useState<string>("");
   const [clientes, setClientes] = useState<ClienteResponse[]>([]);
+  const [pets, setPets] = useState<PetResponse[]>([]);
   const [produtos, setProdutos] = useState<ProdutoResponse[]>([]);
   const [itens, setItens] = useState<ItemForm[]>([]);
   const [tipoItem, setTipoItem] = useState<"PRODUTO" | "SERVICO">("PRODUTO");
   const [produtoId, setProdutoId] = useState<string>("");
   const [servico, setServico] = useState<TipoServico>("BANHO");
+  const [petId, setPetId] = useState<string>("");
   const [quantidade, setQuantidade] = useState(1);
   const [precoUnitario, setPrecoUnitario] = useState(0);
+  const [loadingPreco, setLoadingPreco] = useState(false);
 
   useEffect(() => {
     fetchAPI<ClienteResponse[]>("/clientes").then(setClientes).catch(console.error);
     fetchAPI<ProdutoResponse[]>("/produtos").then(setProdutos).catch(console.error);
   }, []);
+
+  // Carregar pets quando cliente mudar
+  useEffect(() => {
+    if (clienteId) {
+      fetchAPI<PetResponse[]>(`/pets`)
+        .then(allPets => setPets(allPets.filter(p => p.clienteId === parseInt(clienteId))))
+        .catch(console.error);
+    } else {
+      setPets([]);
+    }
+  }, [clienteId]);
+
+  // Calcular preço dinâmico quando serviço e pet mudarem
+  useEffect(() => {
+    if (tipoItem === "SERVICO" && petId && servico) {
+      setLoadingPreco(true);
+      fetchAPI<{ preco: number; duracao: number }>(`/servicos/preco/${petId}/${servico}`)
+        .then(result => setPrecoUnitario(result.preco))
+        .catch(err => {
+          console.error("Erro ao calcular preço:", err);
+          setPrecoUnitario(0);
+        })
+        .finally(() => setLoadingPreco(false));
+    }
+  }, [petId, servico, tipoItem]);
 
   const clienteSelecionado = clientes.find((c) => c.id === parseInt(clienteId));
   const descontoMap: Record<string, number> = { BRONZE: 0, PRATA: 5, OURO: 10 };
@@ -57,23 +86,27 @@ export function VendaForm({ onSubmit }: VendaFormProps) {
 
   const handleServicoChange = (s: TipoServico) => {
     setServico(s);
-    setPrecoUnitario(PRECOS_SERVICOS[s]);
+    setPetId(""); // Reset petId quando serviço mudar
+    setPrecoUnitario(0); // Reset até que um pet seja selecionado
   };
 
   const adicionarItem = () => {
     if (tipoItem === "PRODUTO" && !produtoId) { alert("Selecione um produto"); return; }
+    if (tipoItem === "SERVICO" && !petId) { alert("Selecione um pet para o serviço"); return; }
     if (precoUnitario <= 0) { alert("Preço inválido"); return; }
     const novoItem: ItemForm = {
       tipo: tipoItem,
       produtoId: tipoItem === "PRODUTO" ? parseInt(produtoId) : undefined,
       servico: tipoItem === "SERVICO" ? servico : undefined,
+      petId: tipoItem === "SERVICO" ? parseInt(petId) : undefined,
       quantidade,
       precoUnitario,
     };
     setItens([...itens, novoItem]);
     setProdutoId("");
+    setPetId("");
     setQuantidade(1);
-    setPrecoUnitario(tipoItem === "SERVICO" ? PRECOS_SERVICOS[servico] : 0);
+    setPrecoUnitario(0);
   };
 
   const removerItem = (idx: number) => setItens(itens.filter((_, i) => i !== idx));
@@ -122,10 +155,10 @@ export function VendaForm({ onSubmit }: VendaFormProps) {
       {/* Adicionar item */}
       <div style={{ border: "1px solid var(--border)", borderRadius: "6px", padding: "1rem" }}>
         <h3 style={{ color: "var(--text-h)", margin: "0 0 0.75rem" }}>Adicionar Item</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr 1fr 1fr auto", gap: "0.5rem", alignItems: "end" }}>
+        <div style={{ display: "grid", gridTemplateColumns: tipoItem === "SERVICO" ? "1fr 1fr 1fr 1fr 1fr auto" : "1fr 2fr 1fr 1fr auto", gap: "0.5rem", alignItems: "end" }}>
           <div>
             <label style={{ display: "block", color: "var(--text)", marginBottom: "0.3rem", fontSize: "0.85rem" }}>Tipo</label>
-            <select value={tipoItem} onChange={(e) => { setTipoItem(e.target.value as any); setProdutoId(""); setPrecoUnitario(e.target.value === "SERVICO" ? PRECOS_SERVICOS["BANHO"] : 0); }} style={inputStyle}>
+            <select value={tipoItem} onChange={(e) => { setTipoItem(e.target.value as any); setProdutoId(""); setPetId(""); setPrecoUnitario(0); }} style={inputStyle}>
               <option value="PRODUTO">Produto</option>
               <option value="SERVICO">Serviço</option>
             </select>
@@ -139,19 +172,33 @@ export function VendaForm({ onSubmit }: VendaFormProps) {
               </select>
             ) : (
               <select value={servico} onChange={(e) => handleServicoChange(e.target.value as TipoServico)} style={inputStyle}>
-                {(["BANHO", "TOSA", "CONSULTA", "HOSPEDAGEM"] as TipoServico[]).map((s) => (
-                  <option key={s} value={s}>{s} (R$ {PRECOS_SERVICOS[s].toFixed(2)})</option>
-                ))}
+                {(["BANHO", "TOSA", "CONSULTA", "HOSPEDAGEM"] as TipoServico[]).map((s) => {
+                  const precoInfo = PRECOS_SERVICOS_PADRAO[s];
+                  const displayText = precoInfo.fixo ? `${s} (R$ ${precoInfo.fixo})` : `${s} (R$ ${precoInfo.min}-${precoInfo.max})`;
+                  return <option key={s} value={s}>{displayText}</option>;
+                })}
               </select>
             )}
           </div>
+          {tipoItem === "SERVICO" && (
+            <div>
+              <label style={{ display: "block", color: "var(--text)", marginBottom: "0.3rem", fontSize: "0.85rem" }}>Pet</label>
+              <select value={petId} onChange={(e) => setPetId(e.target.value)} style={inputStyle} disabled={!clienteId}>
+                <option value="">Selecione...</option>
+                {pets.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}
+              </select>
+            </div>
+          )}
           <div>
             <label style={{ display: "block", color: "var(--text)", marginBottom: "0.3rem", fontSize: "0.85rem" }}>Qtd</label>
             <input type="number" min="1" value={quantidade} onChange={(e) => setQuantidade(parseInt(e.target.value))} style={{ ...inputStyle, width: "60px" }} />
           </div>
           <div>
             <label style={{ display: "block", color: "var(--text)", marginBottom: "0.3rem", fontSize: "0.85rem" }}>Preço Unit.</label>
-            <input type="number" min="0" step="0.01" value={precoUnitario} onChange={(e) => setPrecoUnitario(parseFloat(e.target.value))} style={{ ...inputStyle, width: "90px" }} />
+            <div style={{ display: "flex", gap: "0.25rem", alignItems: "center" }}>
+              <input type="number" min="0" step="0.01" value={precoUnitario} onChange={(e) => setPrecoUnitario(parseFloat(e.target.value))} style={{ ...inputStyle, flex: 1 }} disabled={tipoItem === "SERVICO"} />
+              {tipoItem === "SERVICO" && loadingPreco && <span style={{ fontSize: "0.75rem", color: "var(--text)" }}>...</span>}
+            </div>
           </div>
           <button type="button" onClick={adicionarItem} style={{ background: "var(--accent)", color: "white", padding: "0.6rem 1rem", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "600" }}>
             + Adicionar
