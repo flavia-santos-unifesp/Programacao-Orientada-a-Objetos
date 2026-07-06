@@ -4,7 +4,9 @@ interface ServicoInfo {
   tipo: TipoServico;
   icon: string;
   descricao: string;
-  preco: number;
+  precoMin: number;
+  precoMax: number;
+  precoFixo?: number;
   duracao: string;
 }
 
@@ -12,29 +14,34 @@ const SERVICOS: ServicoInfo[] = [
   {
     tipo: "BANHO",
     icon: "🛁",
-    descricao: "Banho completo com shampoo e condicionador especiais para pets.",
-    preco: 50,
-    duracao: "1-2 horas",
+    descricao: "Banho completo com shampoo e condicionador especiais para pets. Preço varia conforme o tamanho do pet.",
+    precoMin: 40,
+    precoMax: 90,
+    duracao: "30-60 min",
   },
   {
     tipo: "TOSA",
     icon: "✂️",
-    descricao: "Tosa higiênica ou estética conforme necessidade do pet.",
-    preco: 70,
-    duracao: "1-3 horas",
+    descricao: "Tosa higiênica ou estética conforme necessidade do pet. Preço varia conforme o tamanho do pet.",
+    precoMin: 50,
+    precoMax: 110,
+    duracao: "40-80 min",
   },
   {
     tipo: "CONSULTA",
     icon: "🩺",
-    descricao: "Consulta veterinária com avaliação completa de saúde.",
-    preco: 120,
-    duracao: "30-60 min",
+    descricao: "Consulta veterinária com avaliação completa de saúde. Preço fixo independente do pet.",
+    precoFixo: 120,
+    precoMin: 120,
+    precoMax: 120,
+    duracao: "30 min",
   },
   {
     tipo: "HOSPEDAGEM",
     icon: "🏨",
-    descricao: "Hospedagem diária com alimentação, passeios e cuidados.",
-    preco: 80,
+    descricao: "Hospedagem diária com alimentação, passeios e cuidados. Preço varia conforme o tamanho do pet.",
+    precoMin: 80,
+    precoMax: 140,
     duracao: "Por diária",
   },
 ];
@@ -51,7 +58,7 @@ export function Servicos() {
       <h1 style={{ color: "var(--text-h)", fontSize: "2.25rem", margin: 0 }}>🐾 Gestão de Serviços</h1>
 
       <p style={{ color: "var(--text)", margin: 0 }}>
-        Os serviços oferecidos pelo petshop. Os preços podem ter desconto conforme o nível de fidelidade do cliente.
+        Os serviços oferecidos pelo petshop. Os preços podem variar conforme o tamanho do pet e podem ter desconto conforme o nível de fidelidade do cliente.
       </p>
 
       {/* Cards de serviços */}
@@ -63,7 +70,7 @@ export function Servicos() {
             <p style={{ color: "var(--text)", fontSize: "0.9rem", margin: "0 0 1rem" }}>{s.descricao}</p>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <span style={{ color: "var(--accent)", fontWeight: "700", fontSize: "1.2rem" }}>
-                R$ {s.preco.toFixed(2)}
+                {s.precoFixo ? `R$ ${s.precoFixo.toFixed(2)}` : `R$ ${s.precoMin.toFixed(2)}-${s.precoMax.toFixed(2)}`}
               </span>
               <span style={{ color: "var(--text)", fontSize: "0.85rem" }}>⏱ {s.duracao}</span>
             </div>
@@ -105,14 +112,30 @@ export function Servicos() {
                 </td>
                 {SERVICOS.map((s) => {
                   const desc = NIVEL_DESCONTO[nivel];
-                  const precoFinal = s.preco * (1 - desc / 100);
+                  const precoMin = s.precoMin * (1 - desc / 100);
+                  const precoMax = s.precoMax * (1 - desc / 100);
                   return (
-                    <td key={s.tipo} style={{ padding: "1rem", textAlign: "right", color: "var(--text)" }}>
-                      R$ {precoFinal.toFixed(2)}
-                      {desc > 0 && (
-                        <span style={{ fontSize: "0.75rem", color: "green", marginLeft: "0.3rem" }}>
-                          (-{desc}%)
-                        </span>
+                    <td key={s.tipo} style={{ padding: "1rem", textAlign: "right", color: "var(--text)", fontSize: "0.85rem" }}>
+                      {s.precoFixo ? (
+                        <>
+                          R$ {s.precoFixo.toFixed(2)}
+                          {desc > 0 && (
+                            <>
+                              <br/>
+                              <span style={{ color: "green", fontWeight: "600" }}>(-{desc}%)</span>
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          R$ {precoMin.toFixed(2)}-{precoMax.toFixed(2)}
+                          {desc > 0 && (
+                            <>
+                              <br/>
+                              <span style={{ color: "green", fontWeight: "600" }}>(-{desc}%)</span>
+                            </>
+                          )}
+                        </>
                       )}
                     </td>
                   );
