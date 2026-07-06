@@ -294,6 +294,16 @@ function filterVendasByMonth(vendas: any[], mes?: number, ano?: number) {
   });
 }
 
+// Helper function to filter vendas by year only
+function filterVendasByYear(vendas: any[], ano?: number) {
+  if (!ano) return vendas;
+  
+  return vendas.filter((venda) => {
+    const vendaDate = new Date(venda.data);
+    return vendaDate.getFullYear() === ano;
+  });
+}
+
 // ===== KPIs DASHBOARD =====
 app.get("/api/kpis", async (req, res) => {
   try {
@@ -432,12 +442,12 @@ app.get("/api/kpis/evolucao-faturamento", async (req, res) => {
   }
 });
 
-// Endpoint para serviços mais vendidos
+// Endpoint para serviços mais vendidos (ano inteiro se mês não for especificado)
 app.get("/api/kpis/servicos-mais-vendidos", async (req, res) => {
   try {
     const { mes, ano } = req.query;
     const mesNum = mes ? parseInt(mes as string) : undefined;
-    const anoNum = ano ? parseInt(ano as string) : undefined;
+    const anoNum = ano ? parseInt(ano as string) : new Date().getFullYear();
 
     const vendas = await prisma.venda.findMany({
       include: {
@@ -445,7 +455,8 @@ app.get("/api/kpis/servicos-mais-vendidos", async (req, res) => {
       },
     });
 
-    const vendasFiltradas = filterVendasByMonth(vendas, mesNum, anoNum);
+    // Se mês não for especificado, filtra por ano inteiro
+    const vendasFiltradas = mesNum ? filterVendasByMonth(vendas, mesNum, anoNum) : filterVendasByYear(vendas, anoNum);
 
     const servicoContagem: Record<string, number> = {};
     vendasFiltradas.forEach((venda) => {
@@ -468,12 +479,12 @@ app.get("/api/kpis/servicos-mais-vendidos", async (req, res) => {
   }
 });
 
-// Endpoint para produtos mais vendidos
+// Endpoint para produtos mais vendidos (ano inteiro se mês não for especificado)
 app.get("/api/kpis/produtos-mais-vendidos", async (req, res) => {
   try {
     const { mes, ano } = req.query;
     const mesNum = mes ? parseInt(mes as string) : undefined;
-    const anoNum = ano ? parseInt(ano as string) : undefined;
+    const anoNum = ano ? parseInt(ano as string) : new Date().getFullYear();
 
     const vendas = await prisma.venda.findMany({
       include: {
@@ -485,7 +496,8 @@ app.get("/api/kpis/produtos-mais-vendidos", async (req, res) => {
       },
     });
 
-    const vendasFiltradas = filterVendasByMonth(vendas, mesNum, anoNum);
+    // Se mês não for especificado, filtra por ano inteiro
+    const vendasFiltradas = mesNum ? filterVendasByMonth(vendas, mesNum, anoNum) : filterVendasByYear(vendas, anoNum);
 
     const produtoContagem: Record<number, { nome: string; quantidade: number }> = {};
     vendasFiltradas.forEach((venda) => {

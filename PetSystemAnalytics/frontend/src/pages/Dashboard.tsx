@@ -44,12 +44,12 @@ export function Dashboard({ kpis: initialKpis }: DashboardProps) {
       const evolucao = await fetchAPI<EvolutionData[]>(`/kpis/evolucao-faturamento?ano=${ano}`);
       setEvolucaoFaturamento(evolucao);
 
-      // Carregar serviços mais vendidos
-      const servicos = await fetchAPI<ChartData[]>(`/kpis/servicos-mais-vendidos?mes=${mes}&ano=${ano}`);
+      // Carregar serviços mais vendidos (ano inteiro)
+      const servicos = await fetchAPI<ChartData[]>(`/kpis/servicos-mais-vendidos?ano=${ano}`);
       setServicosMaisVendidos(servicos);
 
-      // Carregar produtos mais vendidos
-      const produtos = await fetchAPI<ChartData[]>(`/kpis/produtos-mais-vendidos?mes=${mes}&ano=${ano}`);
+      // Carregar produtos mais vendidos (ano inteiro)
+      const produtos = await fetchAPI<ChartData[]>(`/kpis/produtos-mais-vendidos?ano=${ano}`);
       setProdutosMaisVendidos(produtos);
     } catch (erro) {
       console.error("Erro ao carregar dados do dashboard:", erro);
@@ -218,7 +218,8 @@ export function Dashboard({ kpis: initialKpis }: DashboardProps) {
 
         {/* Serviços Mais Vendidos */}
         <div style={chartContainerStyle}>
-          <h3 style={chartTitleStyle}>🐾 Serviços Mais Vendidos</h3>
+          <h3 style={chartTitleStyle}>🐾 Serviços Mais Vendidos - {ano}</h3>
+          <p style={{ color: "var(--text-muted)", fontSize: "0.875rem", marginBottom: "1rem" }}>Dados de todo o ano</p>
           {servicosMaisVendidos.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={servicosMaisVendidos}>
@@ -240,7 +241,8 @@ export function Dashboard({ kpis: initialKpis }: DashboardProps) {
 
         {/* Produtos Mais Vendidos */}
         <div style={chartContainerStyle}>
-          <h3 style={chartTitleStyle}>📦 Produtos Mais Vendidos</h3>
+          <h3 style={chartTitleStyle}>📦 Produtos Mais Vendidos - {ano}</h3>
+          <p style={{ color: "var(--text-muted)", fontSize: "0.875rem", marginBottom: "1rem" }}>Dados de todo o ano</p>
           {produtosMaisVendidos.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={produtosMaisVendidos}>
