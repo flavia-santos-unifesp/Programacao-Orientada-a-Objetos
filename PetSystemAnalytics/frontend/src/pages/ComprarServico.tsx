@@ -41,34 +41,50 @@ export function ComprarServico() {
   useEffect(() => {
     if (clienteId) {
       fetchAPI<PetResponse[]>("/pets")
-        .then((allPets) => setPets(allPets.filter((p) => p.clienteId === parseInt(clienteId))))
+        .then((allPets) => {
+          const petsCliente = allPets.filter((p) => p.clienteId === parseInt(clienteId));
+          setPets(petsCliente);
+          // Evita manter pet selecionado de outro cliente
+          setPetSelecionado("");
+        })
         .catch(console.error);
     } else {
       setPets([]);
+      setPetSelecionado("");
     }
   }, [clienteId]);
 
-  const handleAdicionarServico = () => {
-    if (!petSelecionado || !tipoServicoSelecionado) {
-      alert("Selecione um pet e um serviço");
-      return;
-    }
+  const handleAdicionarServico = (tipoServico: TipoServico) => {
+    setTipoServicoSelecionado(tipoServico);
     setShowModal(true);
   };
 
   const handleConfirmarAgendamento = async (funcionarioId: number, dataHora: string) => {
     try {
-      const pet = pets.find((p) => p.id === parseInt(petSelecionado));
-      if (!pet) throw new Error("Pet não encontrado");
+      if (!petSelecionado) {
+        alert("Selecione um pet para finalizar o agendamento");
+        return;
+      }
 
-      const info = SERVICOS_INFO[tipoServicoSelecionado!];
+      if (!tipoServicoSelecionado) {
+        alert("Selecione um serviço para finalizar o agendamento");
+        return;
+      }
+
+      const pet = pets.find((p) => p.id === parseInt(petSelecionado));
+      if (!pet) {
+        alert("Pet selecionado não encontrado. Selecione novamente.");
+      return;
+      }
+
+      const info = SERVICOS_INFO[tipoServicoSelecionado];
 
       // Buscar nome do funcionário
       const funcionarios = await fetchAPI<any[]>("/funcionarios");
       const funcionario = funcionarios.find((f) => f.id === funcionarioId);
 
       const novoItem: ItemAgendado = {
-        servico: tipoServicoSelecionado!,
+        servico: tipoServicoSelecionado,
         petId: pet.id,
         petNome: pet.nome,
         funcionarioId,
@@ -80,7 +96,6 @@ export function ComprarServico() {
 
       setItensAgendados([...itensAgendados, novoItem]);
       setTipoServicoSelecionado(null);
-      setPetSelecionado("");
       setShowModal(false);
     } catch (err) {
       console.error("Erro ao confirmar agendamento:", err);
@@ -225,11 +240,7 @@ export function ComprarServico() {
             return (
               <button
                 key={tipo}
-                onClick={() => {
-                  setTipoServicoSelecionado(tipo);
-                  setPetSelecionado("") ;
-                  handleAdicionarServico();
-                }}
+                onClick={() => handleAdicionarServico(tipo)}
                 style={{
                   padding: "1rem",
                   background: tipoServicoSelecionado === tipo ? "var(--accent)" : "var(--code-bg)",
@@ -357,6 +368,7 @@ export function ComprarServico() {
         <ServicoAgendamentoModal
           tipoServico={tipoServicoSelecionado}
           duracao={SERVICOS_INFO[tipoServicoSelecionado].duracao}
+          petSelecionado={Boolean(petSelecionado)}
           onConfirm={handleConfirmarAgendamento}
           onCancel={() => {
             setShowModal(false);

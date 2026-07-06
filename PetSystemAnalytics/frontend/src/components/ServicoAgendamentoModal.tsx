@@ -13,6 +13,7 @@ export interface FuncionarioDisponivel {
 interface ServicoAgendamentoModalProps {
   tipoServico: TipoServico;
   duracao: number;
+  petSelecionado: boolean;
   onConfirm: (funcionarioId: number, dataHora: string) => void;
   onCancel: () => void;
 }
@@ -20,9 +21,37 @@ interface ServicoAgendamentoModalProps {
 export function ServicoAgendamentoModal({
   tipoServico,
   duracao,
+  petSelecionado,
   onConfirm,
   onCancel,
 }: ServicoAgendamentoModalProps) {
+  const TIMEZONE = "America/Sao_Paulo";
+
+  const formatarDataUtcMinus3 = (valor: string | Date): string => {
+    const d = new Date(valor);
+    const partes = new Intl.DateTimeFormat("en-CA", {
+      timeZone: TIMEZONE,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(d);
+
+    const ano = partes.find((p) => p.type === "year")?.value;
+    const mes = partes.find((p) => p.type === "month")?.value;
+    const dia = partes.find((p) => p.type === "day")?.value;
+
+    return `${ano}-${mes}-${dia}`;
+  };
+
+  const formatarHoraUtcMinus3 = (valor: string | Date): string => {
+    return new Intl.DateTimeFormat("pt-BR", {
+      timeZone: TIMEZONE,
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(new Date(valor));
+  };
+
   const [data, setData] = useState<string>(""); // Apenas data (YYYY-MM-DD)
   const [hora, setHora] = useState<string>(""); // Apenas hora (HH:mm)
   const [horariosDisponiveis, setHorariosDisponiveis] = useState<string[]>([]); // Horários em 15min
@@ -52,12 +81,17 @@ export function ServicoAgendamentoModal({
         
         // Converter para lista de strings HH:mm em intervalos de 15 min
         const horarios = horariosData
-          .filter(h => new Date(h).toISOString().split('T')[0] === data) // Filtrar pela data selecionada
-          .map(h => {
-            const d = new Date(h);
-            const hh = String(d.getHours()).padStart(2, '0');
-            const mm = String(d.getMinutes()).padStart(2, '0');
-            return `${hh}:${mm}`;
+          .filter((h) => formatarDataUtcMinus3(h) === data) // Filtrar pela data selecionada em UTC-3
+          .map((h) => formatarHoraUtcMinus3(h))
+          .filter((h) => {
+            const [horaStr, minutoStr] = h.split(":");
+            const horaNum = Number(horaStr);
+            const minutoNum = Number(minutoStr);
+            // Janela fixa 08:00-17:00 (último slot iniciando antes de 17:00)
+            return Number.isFinite(horaNum)
+              && Number.isFinite(minutoNum)
+              && (horaNum > 8 || (horaNum === 8 && minutoNum >= 0))
+              && horaNum < 17;
           })
           .filter((v, i, a) => a.indexOf(v) === i) // Remove duplicatas
           .sort(); // Ordena horários
@@ -91,7 +125,7 @@ export function ServicoAgendamentoModal({
         setLoadingFuncionarios(true);
         setErro(null);
         
-        const dataHora = new Date(`${data}T${hora}:00`).toISOString();
+        const dataHora = new Date(`${data}T${hora}:00-03:00`).toISOString();
         const url = `/agendamentos/disponibilidade/${tipoServico}?dataHora=${encodeURIComponent(dataHora)}&duracao=${duracao}`;
         const dados = await fetchAPI<FuncionarioDisponivel[]>(url);
         setFuncionarios(dados);
@@ -112,17 +146,20 @@ export function ServicoAgendamentoModal({
   }, [data, hora, duracao, tipoServico]);
 
   const handleConfirm = () => {
+    if (!petSelecionado) {
+      return;
+    }
+
     if (!data || !hora || !selecionado) {
       alert("Selecione data, hora e funcionário");
       return;
     }
-    const dataHora = new Date(`${data}T${hora}:00`).toISOString();
+    const dataHora = new Date(`${data}T${hora}:00-03:00`).toISOString();
     onConfirm(selecionado, dataHora);
   };
 
-  // Data mínima (hoje em formato YYYY-MM-DD)
-  const hoje = new Date();
-  const minData = hoje.toISOString().split('T')[0];
+  // Data mínima (hoje em UTC-3)
+  const minData = formatarDataUtcMinus3(new Date());
 
   const inputStyle: React.CSSProperties = {
     padding: "0.6rem",
@@ -328,7 +365,7 @@ export function ServicoAgendamentoModal({
           </button>
           <button
             onClick={handleConfirm}
-            disabled={!data || !hora || !selecionado || loadingHorarios || loadingFuncionarios}
+            disabled={!petSelecionado || !data || !hora || !selecionado || loadingHorarios || loadingFuncionarios}
             style={{
               padding: "0.6rem 1.5rem",
               background: "var(--accent)",
@@ -336,7 +373,7 @@ export function ServicoAgendamentoModal({
               border: "none",
               borderRadius: "4px",
               cursor: "pointer",
-              opacity: !data || !hora || !selecionado || loadingHorarios || loadingFuncionarios ? 0.5 : 1,
+              opacity: !petSelecionado || !data || !hora || !selecionado || loadingHorarios || loadingFuncionarios ? 0.5 : 1,
             }}
           >
             ✅ Confirmar Agendamento
