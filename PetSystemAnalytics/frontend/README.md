@@ -1,75 +1,70 @@
-# React + TypeScript + Vite
+# Frontend - PetSystem Analytics
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicação React responsável pela interface de gestão do sistema.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. React 19
+2. TypeScript
+3. Vite
+4. Recharts (gráficos no dashboard)
 
-## React Compiler
+## Páginas Principais
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Dashboard
+2. Clientes
+3. Pets
+4. Produtos
+5. Serviços
+6. Vendas (somente produtos)
+7. Agendar Serviço (venda + agendamento de serviços)
+8. Funcionários
+9. Agenda (visão calendário semanal por funcionário)
+10. O Projeto
+11. Equipe
 
-## Expanding the ESLint configuration
+## Fluxos Importantes
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Venda de Produtos
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+1. Acontece na página `Vendas`
+2. Aplicação de desconto por fidelidade
+3. Controle de estoque integrado ao backend
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Venda e Agendamento de Serviços
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. Acontece na página `Agendar Serviço`
+2. Seleção de cliente, pet, serviço e funcionário disponível
+3. Cálculo de preço por pet (peso/porte) via API
+4. Validação de horário comercial e conflitos de agenda
 
+### Agenda de Funcionários
+
+1. Página `Agenda` em formato calendário semanal
+2. Visualização de alocação por funcionário
+3. Leitura de disponibilidade por intervalos livres
+
+## Execução
+
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Aplicação padrão em `http://localhost:5173`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Scripts
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. `npm run dev` - ambiente de desenvolvimento
+2. `npm run build` - build de produção
+3. `npm run preview` - preview local do build
+4. `npm run lint` - lint do código
 
-```
+## Integração com Backend
+
+Este frontend consome os endpoints da API do backend (Express + Prisma), incluindo:
+
+1. `/clientes`, `/pets`, `/produtos`, `/funcionarios`
+2. `/vendas`
+3. `/servicos/preco/:petId/:tipo`
+4. `/agendamentos`, `/agendamentos/disponibilidade/:tipoServico`, `/agendamentos/sugerir-horarios/:tipoServico`

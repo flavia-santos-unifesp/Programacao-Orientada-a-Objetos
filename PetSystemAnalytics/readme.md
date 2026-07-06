@@ -1,176 +1,108 @@
 # PetSystem Analytics
 
-## Descrição
+Sistema de gestão para pet shop e clínica veterinária, desenvolvido como projeto acadêmico de Programação Orientada a Objetos (POO).
 
-O PetSystem Analytics é um sistema de gerenciamento para pet shops desenvolvido com foco na aplicação dos conceitos de Programação Orientada a Objetos (POO). O sistema permite o controle de clientes, pets, produtos, serviços e vendas, além da geração de indicadores de desempenho (KPIs), relatórios gerenciais e controle de estoque.
+## Visão Geral
 
-O objetivo do projeto é demonstrar, de forma prática, a utilização dos principais conceitos de POO em um cenário real de negócio.
+O projeto está dividido em duas aplicações:
 
----
+1. `backend` (Express + TypeScript + Prisma)
+2. `frontend` (React + TypeScript + Vite)
 
-## Funcionalidades
+O sistema cobre gestão de clientes, pets, funcionários, produtos, vendas, serviços com agendamento e acompanhamento de agenda semanal por funcionário.
 
-* Cadastro de clientes
-* Cadastro de funcionários
-* Cadastro de pets
-* Cadastro de produtos
-* Cadastro de serviços
-* Registro de vendas
-* Controle automático de estoque
-* Geração de KPIs
-* Geração de relatórios gerenciais
-* Exportação de relatórios em CSV
-* Simulação de exportação em PDF
-* Validação de estoque disponível antes da venda
+## Funcionalidades Atuais
 
----
+1. Cadastro de clientes, pets, funcionários e produtos
+2. Venda de produtos na tela `Vendas` com desconto por fidelidade
+3. Venda de serviços concentrada na tela `Agendar Serviço`
+4. Agendamento com seleção de funcionário apto por tipo de serviço
+5. Cálculo de preço de serviço por pet (peso/porte), conforme regra do backend
+6. Validação de horário comercial para agendamento
+7. Verificação de conflito de horários por funcionário
+8. Agenda em formato calendário semanal por funcionário
+9. Dashboard com KPIs e rankings (faturamento, ticket médio, mais vendidos)
+10. Relatórios e exportações (CSV/PDF conforme camada de relatórios)
 
-## Indicadores (KPIs)
+## Regras de Negócio Relevantes
 
-O sistema calcula automaticamente os seguintes indicadores:
+1. Controle de estoque automático para vendas de produtos
+2. Desconto por fidelidade (BRONZE/PRATA/OURO)
+3. Agendamento somente em horário comercial
+4. Bloqueio de sobreposição de agendamentos por funcionário
+5. Alocação de funcionário conforme serviço (ex.: consulta exige perfil compatível)
 
-* Faturamento total
-* Ticket médio
-* Quantidade de vendas realizadas
-* Produto mais vendido
-* Serviço mais utilizado
-* Cliente que mais gastou
+## Conceitos de POO Aplicados
 
----
+1. Encapsulamento
+2. Herança (`Pessoa` como base para entidades de pessoas)
+3. Polimorfismo (serviços e relatórios com comportamentos específicos)
+4. Abstração (camadas de domínio e contratos)
+5. Composição (`Cliente` com pets, `Venda` com itens)
+6. Padrões de projeto: Repository, Service, Mapper e Factory
 
-## Conceitos de Programação Orientada a Objetos Utilizados
-
-### Encapsulamento
-
-Os atributos das classes são privados e acessados por meio de métodos públicos, garantindo maior segurança e controle dos dados.
-
-### Herança
-
-A classes `Cliente` herdm características comuns da classe `Pessoa`.
+## Estrutura do Repositório
 
 ```text
-Pessoa
-├── Cliente
+PetSystemAnalytics/
+├── backend/
+│   ├── prisma/
+│   ├── src/
+│   │   ├── constants/
+│   │   ├── dto/
+│   │   ├── factories/
+│   │   ├── interfaces/
+│   │   ├── mappers/
+│   │   ├── models/
+│   │   ├── reports/
+│   │   ├── repositories/
+│   │   ├── services/
+│   │   ├── utils/
+│   │   └── index.ts
+│   └── tests/
+└── frontend/
+	├── src/
+	│   ├── components/
+	│   ├── pages/
+	│   ├── services/
+	│   └── types/
+	└── index.html
 ```
-
-### Polimorfismo
-
-Implementado através da interface `Exportador`, que possui diferentes implementações para exportação de relatórios.
-
-```text
-Exportador
-├── ExportadorCSV
-└── ExportadorPDF
-```
-
-### Abstração
-
-As entidades do sistema foram modeladas através de classes que representam elementos do domínio do pet shop.
-
-Exemplos:
-
-* Pessoa
-* Cliente
-* Funcionário
-* Pet
-* Produto
-* Serviço
-* Venda
-
-### Composição
-
-O sistema utiliza composição para representar relacionamentos entre objetos.
-
-```text
-Cliente
- └── Pet
-
-Venda
- └── ItemVenda
-```
-
----
-
-## Regras de Negócio
-
-### Controle de Estoque
-
-Ao registrar uma venda, o sistema reduz automaticamente a quantidade disponível em estoque.
-
-Caso a quantidade solicitada seja superior ao estoque disponível, a venda é bloqueada e uma exceção é lançada.
-
-Exemplo:
-
-```text
-Estoque disponível: 50
-Quantidade solicitada: 999
-
-Resultado:
-Erro: Estoque insuficiente.
-```
-
----
-
-## Estrutura do Projeto
-
-```text
-src/
-│
-├── data/
-│
-├── interfaces/
-│
-├── models/
-│
-├── repositories/
-│
-├── reports/
-│
-├── services/
-│
-└── index.ts
-```
-
----
 
 ## Como Executar
 
-### Instalar dependências
+### Backend
 
 ```bash
+cd backend
 npm install
+npm run dev
 ```
 
-### Executar o projeto
+### Frontend
 
 ```bash
-npx ts-node src/index.ts
+cd frontend
+npm install
+npm run dev
 ```
 
----
+## Scripts Principais
 
-## Exemplo de Saída
+### Backend
 
-```text
-===== RELATÓRIO DE KPIs =====
+1. `npm run dev` - inicia API em desenvolvimento
+2. `npm run build` - gera build TypeScript + Prisma
+3. `npm run test` - executa testes com Vitest
 
-Faturamento Total: R$ 875
-Ticket Médio: R$ 175
-Quantidade de Vendas: 5
-Produto Mais Vendido: Ração Premium
-Serviço Mais Utilizado: Banho
-Cliente que Mais Gastou: Flavia Fernandes
+### Frontend
 
-===== EXPORTAÇÃO =====
-
-Arquivo CSV gerado com sucesso.
-Exportação PDF simulada com sucesso.
-```
----
+1. `npm run dev` - inicia aplicação Vite
+2. `npm run build` - build de produção
+3. `npm run lint` - lint do frontend
 
 ## Autores
-@AndreyPradoAP
-@flavia-santos-unifesp
-@rennanbritto
 
-**PetSystem Analytics**
+1. @AndreyPradoAP
+2. @flavia-santos-unifesp
+3. @rennanbritto

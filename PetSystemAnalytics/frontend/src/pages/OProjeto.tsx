@@ -52,7 +52,12 @@ export function OProjeto() {
         </p>
         <p style={textStyle}>
           O sistema permite gerenciar clientes, pets, produtos, serviços e vendas, 
-          com um programa de fidelidade integrado e análise de KPIs em tempo real.
+          com programa de fidelidade, agendamento de serviços e análise de KPIs em tempo real.
+        </p>
+        <p style={textStyle}>
+          No fluxo atual, a tela <strong>Vendas</strong> é dedicada a produtos,
+          enquanto a tela <strong>Agendar Serviço</strong> concentra a venda de serviços
+          com seleção de data/hora, funcionário apto e validações de disponibilidade.
         </p>
       </div>
 
@@ -62,10 +67,12 @@ export function OProjeto() {
         <ul style={listStyle}>
           <li>Gestão de Clientes com programa de fidelidade</li>
           <li>Cadastro e controle de Pets</li>
-          <li>Cadastro de Funcionários</li>
+          <li>Cadastro de Funcionários com alocação por cargo</li>
           <li>Gerenciamento de estoque de Produtos com validação automática</li>
-          <li>Registro de Serviços (Banho, Tosa, Consulta, Hospedagem)</li>
-          <li>Sistema de Vendas com desconto automático por fidelidade</li>
+          <li>Venda de Produtos na tela Vendas, com desconto automático por fidelidade</li>
+          <li>Venda e Agendamento de Serviços (Banho, Tosa, Consulta e Hospedagem) na tela Agendar Serviço</li>
+          <li>Validação de horário comercial e disponibilidade de funcionário no agendamento</li>
+          <li>Agenda semanal em formato calendário por funcionário</li>
           <li>Dashboard com KPIs e análises em tempo real</li>
         </ul>
       </div>
@@ -86,9 +93,9 @@ export function OProjeto() {
         <div style={featureItemStyle}>
           <h3 style={{ color: "var(--accent)", margin: "0 0 0.5rem 0" }}>Polimorfismo</h3>
           <p style={{ margin: 0, color: "var(--text)" }}>
-            Cada subclasse de <code>Servico</code> implementa seus próprios cálculos de preço e duração
-            conforme o tipo e porte do pet. O mesmo método <code>calcularPreco(pet)</code> produz
-            resultados diferentes dependendo da classe concreta invocada.
+            O domínio de serviços reutiliza contratos comuns para representar Banho, Tosa,
+            Consulta e Hospedagem, aplicando regras específicas por tipo de serviço e
+            características do pet (como peso e porte) sem alterar o fluxo principal da aplicação.
           </p>
         </div>
 
@@ -115,7 +122,8 @@ export function OProjeto() {
             A interface genérica <code>IRepository&lt;TDomain, TCreateInput&gt;</code> define o
             contrato de acesso a dados (create, findAll, findById) implementado por
             <code> ClienteRepository</code>, <code>PetRepository</code>, <code>ProdutoRepository</code> e{" "}
-            <code>VendaRepository</code> — múltiplas implementações para o mesmo contrato.
+            <code>VendaRepository</code>, além de outros repositórios de agenda — múltiplas
+            implementações para o mesmo contrato.
           </p>
         </div>
 
@@ -153,6 +161,7 @@ export function OProjeto() {
           <li><strong>Services:</strong> Orquestração de regras de negócio</li>
           <li><strong>DTOs:</strong> Transferência segura de dados entre camadas</li>
           <li><strong>Mappers:</strong> Conversão entre modelos de diferentes camadas</li>
+          <li><strong>API:</strong> Backend em Express + TypeScript com endpoints REST</li>
           <li><strong>Frontend:</strong> Interface intuitiva em React + TypeScript</li>
         </ul>
       </div>
