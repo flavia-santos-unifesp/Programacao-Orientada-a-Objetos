@@ -2,8 +2,9 @@ import { prisma } from "../database/prisma";
 import { CreateProdutoDTO } from "../dto/CreateProdutoDTO";
 import { ProdutoMapper } from "../mappers/ProdutoMapper";
 import { Produto } from "../models/Produto";
+import { IRepository } from "../interfaces/IRepository";
 
-export class ProdutoRepository {
+export class ProdutoRepository implements IRepository<Produto, CreateProdutoDTO> {
 
     /**
      * Cadastra um novo produto.

@@ -62,11 +62,11 @@ export function OProjeto() {
         <ul style={listStyle}>
           <li>Gestão de Clientes com programa de fidelidade</li>
           <li>Cadastro e controle de Pets</li>
-          <li>Gerenciamento de estoque de Produtos</li>
+          <li>Cadastro de Funcionários</li>
+          <li>Gerenciamento de estoque de Produtos com validação automática</li>
           <li>Registro de Serviços (Banho, Tosa, Consulta, Hospedagem)</li>
           <li>Sistema de Vendas com desconto automático por fidelidade</li>
-          <li>Dashboard com KPIs e análises</li>
-          <li>Relatórios de vendas em CSV</li>
+          <li>Dashboard com KPIs e análises em tempo real</li>
         </ul>
       </div>
 
@@ -77,48 +77,65 @@ export function OProjeto() {
         <div style={featureItemStyle}>
           <h3 style={{ color: "var(--accent)", margin: "0 0 0.5rem 0" }}>Herança</h3>
           <p style={{ margin: 0, color: "var(--text)" }}>
-            A classe <code>Cliente</code> herda de <code>Pessoa</code>, reutilizando atributos 
-            como nome, telefone e email. Tipos de serviços (Banho, Tosa, etc.) herdam de <code>Servico</code>.
+            As classes <code>Cliente</code> e <code>Funcionario</code> herdam de <code>Pessoa</code>,
+            reutilizando atributos como nome, telefone e email. Os tipos de serviço
+            (Banho, Tosa, Consulta, Hospedagem) herdam de <code>Servico</code>.
           </p>
         </div>
 
         <div style={featureItemStyle}>
           <h3 style={{ color: "var(--accent)", margin: "0 0 0.5rem 0" }}>Polimorfismo</h3>
           <p style={{ margin: 0, color: "var(--text)" }}>
-            Cada serviço implementa seus próprios cálculos de preço e duração conforme o tipo de pet. 
-            O mesmo método pode ter comportamentos diferentes, permitindo flexibilidade no código.
+            Cada subclasse de <code>Servico</code> implementa seus próprios cálculos de preço e duração
+            conforme o tipo e porte do pet. O mesmo método <code>calcularPreco(pet)</code> produz
+            resultados diferentes dependendo da classe concreta invocada.
           </p>
         </div>
 
         <div style={featureItemStyle}>
           <h3 style={{ color: "var(--accent)", margin: "0 0 0.5rem 0" }}>Encapsulamento</h3>
           <p style={{ margin: 0, color: "var(--text)" }}>
-            Atributos privados e métodos públicos controlados. O programa de fidelidade é 
-            um objeto encapsulado dentro de Cliente, ocultando sua complexidade interna.
+            Atributos privados e métodos públicos controlados. O <code>ProgramaFidelidade</code> é
+            encapsulado dentro de <code>Cliente</code>, ocultando toda a lógica de pontuação e
+            desconto do código externo.
           </p>
         </div>
 
         <div style={featureItemStyle}>
           <h3 style={{ color: "var(--accent)", margin: "0 0 0.5rem 0" }}>Abstração</h3>
           <p style={{ margin: 0, color: "var(--text)" }}>
-            Classes abstratas como <code>Pessoa</code> e <code>Servico</code> definem contratos 
-            que suas subclasses devem implementar.
+            Classes abstratas como <code>Pessoa</code> e <code>Servico</code> definem contratos
+            que suas subclasses devem obrigatoriamente implementar, sem expor detalhes internos.
           </p>
         </div>
 
         <div style={featureItemStyle}>
-          <h3 style={{ color: "var(--accent)", margin: "0 0 0.5rem 0" }}>Composição e Agregação</h3>
+          <h3 style={{ color: "var(--accent)", margin: "0 0 0.5rem 0" }}>Interfaces</h3>
           <p style={{ margin: 0, color: "var(--text)" }}>
-            <code>Cliente</code> contém <code>ProgramaFidelidade</code> (composição) e uma 
-            coleção de <code>Pet</code> (agregação).
+            A interface genérica <code>IRepository&lt;TDomain, TCreateInput&gt;</code> define o
+            contrato de acesso a dados (create, findAll, findById) implementado por
+            <code> ClienteRepository</code>, <code>PetRepository</code>, <code>ProdutoRepository</code> e{" "}
+            <code>VendaRepository</code> — múltiplas implementações para o mesmo contrato.
+          </p>
+        </div>
+
+        <div style={featureItemStyle}>
+          <h3 style={{ color: "var(--accent)", margin: "0 0 0.5rem 0" }}>Composição</h3>
+          <p style={{ margin: 0, color: "var(--text)" }}>
+            <code>Cliente</code> é composto por <code>ProgramaFidelidade</code> e uma coleção
+            de <code>Pet</code>. <code>Venda</code> é composta por uma coleção de{" "}
+            <code>ItemVenda</code>, onde cada item referencia um <code>Produto</code> ou{" "}
+            <code>Servico</code>.
           </p>
         </div>
 
         <div style={featureItemStyle}>
           <h3 style={{ color: "var(--accent)", margin: "0 0 0.5rem 0" }}>Padrões de Projeto</h3>
           <p style={{ margin: 0, color: "var(--text)" }}>
-            Utiliza Repository Pattern para acesso a dados, Mapper Pattern para conversão entre camadas, 
-            Factory Pattern para instanciação de serviços e Service Pattern para lógica de negócio.
+            Utiliza <strong>Repository Pattern</strong> (acesso a dados com contrato via interface),{" "}
+            <strong>Mapper Pattern</strong> (conversão entre camadas), <strong>Factory Pattern</strong>{" "}
+            (instanciação de serviços via <code>ServicoFactory</code>) e <strong>Service Pattern</strong>{" "}
+            (orquestração de regras de negócio).
           </p>
         </div>
       </div>
@@ -131,6 +148,7 @@ export function OProjeto() {
         </p>
         <ul style={listStyle}>
           <li><strong>Models:</strong> Entidades do domínio com validações e lógica de negócio</li>
+          <li><strong>Interfaces:</strong> Contratos que definem comportamentos entre camadas</li>
           <li><strong>Repositories:</strong> Acesso aos dados com Prisma ORM</li>
           <li><strong>Services:</strong> Orquestração de regras de negócio</li>
           <li><strong>DTOs:</strong> Transferência segura de dados entre camadas</li>

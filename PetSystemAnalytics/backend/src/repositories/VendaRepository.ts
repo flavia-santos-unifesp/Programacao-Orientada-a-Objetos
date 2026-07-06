@@ -4,8 +4,9 @@ import { prisma } from "../database/prisma";
 
 import { Produto } from "../models/Produto";
 import { Venda } from "../models/Venda";
+import { IRepository } from "../interfaces/IRepository";
 
-export class VendaRepository {
+export class VendaRepository implements IRepository<Venda, Venda> {
 
     /**
      * Persiste uma venda e seus itens em uma transação.

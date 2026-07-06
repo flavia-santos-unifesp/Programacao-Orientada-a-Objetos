@@ -2,8 +2,9 @@ import { prisma } from "../database/prisma";
 import { CreatePetDTO } from "../dto/CreatePetDTO";
 import { PetMapper } from "../mappers/PetMapper";
 import { Pet } from "../models/Pet";
+import { IRepository } from "../interfaces/IRepository";
 
-export class PetRepository {
+export class PetRepository implements IRepository<Pet, CreatePetDTO> {
 
     /**
      * Cadastra um novo pet.

@@ -2,8 +2,9 @@ import { prisma } from "../database/prisma";
 import { ClienteMapper } from "../mappers/ClienteMapper";
 import { CreateClienteDTO } from "../dto/CreateClienteDTO";
 import { Cliente } from "../models/Cliente";
+import { IRepository } from "../interfaces/IRepository";
 
-export class ClienteRepository {
+export class ClienteRepository implements IRepository<Cliente, CreateClienteDTO> {
 
     /**
      * Cria um novo cliente.
