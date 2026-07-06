@@ -284,6 +284,91 @@ app.get("/api/servicos/preco/:petId/:tipo", async (req, res) => {
   }
 });
 
+// ===== KPIs DASHBOARD =====
+app.get("/api/kpis", async (req, res) => {
+  try {
+    // Fetch all vendas with their items and cliente
+    const vendas = await prisma.venda.findMany({
+      include: {
+        cliente: true,
+        itens: {
+          include: {
+            produto: true,
+          },
+        },
+      },
+    });
+
+    // Calculate KPIs
+    const totalVendas = vendas.length;
+    const faturamento = vendas.reduce((acc, v) => acc + v.total, 0);
+    const ticketMedio = totalVendas > 0 ? faturamento / totalVendas : 0;
+
+    // Find best-selling product
+    const produtoContagem: Record<number, { nome: string; count: number }> = {};
+    const servicoContagem: Record<string, number> = {};
+    const clienteGasto: Record<number, { nome: string; total: number }> = {};
+
+    vendas.forEach((venda) => {
+      // Track client spending
+      if (!clienteGasto[venda.clienteId]) {
+        clienteGasto[venda.clienteId] = {
+          nome: venda.cliente!.nome,
+          total: 0,
+        };
+      }
+      clienteGasto[venda.clienteId]!.total += venda.total;
+
+      // Track products and services
+      venda.itens.forEach((item) => {
+        if (item.tipo === "PRODUTO" && item.produtoId) {
+          if (!produtoContagem[item.produtoId]) {
+            produtoContagem[item.produtoId] = {
+              nome: item.produto?.nome || "Produto desconhecido",
+              count: 0,
+            };
+          }
+          produtoContagem[item.produtoId]!.count += item.quantidade;
+        } else if (item.tipo === "SERVICO" && item.servico) {
+          servicoContagem[item.servico] = (servicoContagem[item.servico] || 0) + item.quantidade;
+        }
+      });
+    });
+
+    // Find top product, service, and client
+    let produtoMaisVendido = "N/A";
+    let servicoMaisUtilizado = "N/A";
+    let clienteQueMaisGastou = "N/A";
+
+    const topProducts = Object.entries(produtoContagem).sort(([, a], [, b]) => b.count - a.count);
+    if (topProducts.length > 0 && topProducts[0] && topProducts[0][1]) {
+      produtoMaisVendido = topProducts[0][1]!.nome;
+    }
+
+    const topServices = Object.entries(servicoContagem).sort(([, a], [, b]) => b - a);
+    if (topServices.length > 0 && topServices[0]) {
+      servicoMaisUtilizado = topServices[0][0]!;
+    }
+
+    const topClients = Object.entries(clienteGasto).sort(([, a], [, b]) => b.total - a.total);
+    if (topClients.length > 0 && topClients[0] && topClients[0][1]) {
+      clienteQueMaisGastou = topClients[0][1]!.nome;
+    }
+
+    res.json({
+      faturamento,
+      ticketMedio: Math.round(ticketMedio * 100) / 100,
+      quantidadeVendas: totalVendas,
+      produtoMaisVendido,
+      servicoMaisUtilizado,
+      clienteQueMaisGastou,
+    });
+  } catch (error: any) {
+    console.error("Erro ao calcular KPIs:", error);
+    res.status(500).json({ error: "Failed to calculate KPIs", details: error?.message });
+  }
+});
+
 const PORT = parseInt(process.env.PORT || "3000");
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Backend rodando na porta ${PORT}`);

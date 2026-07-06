@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dashboard } from "./pages/Dashboard";
 import { Clientes } from "./pages/Clientes";
 import { Produtos } from "./pages/Produtos";
@@ -8,12 +8,33 @@ import { Equipe } from "./pages/Equipe";
 import { Pets } from "./pages/Pets";
 import { Vendas } from "./pages/Vendas";
 import { mockKPIs } from "./data/mockData";
+import { fetchAPI } from "./services/api";
+import type { KPIResponse } from "./types";
 import "./App.css";
 
 type Page = "dashboard" | "clientes" | "produtos" | "servicos" | "pets" | "vendas" | "projeto" | "equipe";
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>("dashboard");
+  const [kpis, setKpis] = useState<KPIResponse>(mockKPIs);
+  const [loadingKPIs, setLoadingKPIs] = useState(true);
+
+  useEffect(() => {
+    const loadKPIs = async () => {
+      try {
+        const data = await fetchAPI<KPIResponse>("/kpis");
+        setKpis(data);
+      } catch (error) {
+        console.error("Erro ao carregar KPIs:", error);
+        // Fallback to mock data on error
+        setKpis(mockKPIs);
+      } finally {
+        setLoadingKPIs(false);
+      }
+    };
+
+    loadKPIs();
+  }, []);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
@@ -79,7 +100,12 @@ export default function App() {
           overflowY: "auto",
           background: "var(--bg)"
         }}>
-          {currentPage === "dashboard" && <Dashboard kpis={mockKPIs} />}
+          {currentPage === "dashboard" && !loadingKPIs && <Dashboard kpis={kpis} />}
+          {currentPage === "dashboard" && loadingKPIs && (
+            <div style={{ textAlign: "center", padding: "2rem", color: "var(--text)" }}>
+              Carregando KPIs...
+            </div>
+          )}
           {currentPage === "clientes" && <Clientes />}
           {currentPage === "produtos" && <Produtos />}
           {currentPage === "servicos" && <Servicos />}
