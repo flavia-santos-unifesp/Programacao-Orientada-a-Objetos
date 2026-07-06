@@ -748,7 +748,7 @@ app.get("/api/agendamentos/sugerir-horarios/:tipoServico", async (req, res) => {
     const disponibilidadeService = new DisponibilidadeService();
     const durationMinutes = parseInt(duracao as string);
     const qtd = quantidade ? parseInt(quantidade as string) : 30; // Retornar mais horários para dia inteiro
-    const dataEspecifica = data ? new Date(data as string) : undefined;
+    const dataEspecifica = typeof data === "string" ? data : undefined;
 
     const horarios = await disponibilidadeService.sugerirProximosHorarios(
       tipoServico as any,
