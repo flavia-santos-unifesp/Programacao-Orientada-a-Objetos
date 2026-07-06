@@ -15,9 +15,18 @@ import "./App.css";
 
 type Page = "dashboard" | "clientes" | "produtos" | "servicos" | "pets" | "vendas" | "funcionarios" | "agenda" | "comprar-servico" | "projeto" | "equipe";
 
+const mockKPIs: KPIResponse = {
+  faturamento: 0,
+  ticketMedio: 0,
+  quantidadeVendas: 0,
+  produtoMaisVendido: "",
+  servicoMaisUtilizado: "",
+  clienteQueMaisGastou: "",
+};
+
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>("dashboard");
-  const initialKpis: KPIResponse = 0 as unknown as KPIResponse; // Placeholder for initial KPIs, replace with actual data fetching logic if needed
+  const initialKpis: KPIResponse = mockKPIs; // Placeholder for initial KPIs, replace with actual data fetching logic if needed
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
