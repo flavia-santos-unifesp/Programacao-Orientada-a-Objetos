@@ -10,7 +10,6 @@ import { Vendas } from "./pages/Vendas";
 import { Funcionarios } from "./pages/Funcionarios";
 import { Agenda } from "./pages/Agenda";
 import { ComprarServico } from "./pages/ComprarServico";
-import { mockKPIs } from "./data/mockData";
 import type { KPIResponse } from "./types";
 import "./App.css";
 
@@ -18,7 +17,7 @@ type Page = "dashboard" | "clientes" | "produtos" | "servicos" | "pets" | "venda
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>("dashboard");
-  const initialKpis: KPIResponse = mockKPIs;
+  const initialKpis: KPIResponse = 0 as unknown as KPIResponse; // Placeholder for initial KPIs, replace with actual data fetching logic if needed
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
