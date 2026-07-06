@@ -284,9 +284,23 @@ app.get("/api/servicos/preco/:petId/:tipo", async (req, res) => {
   }
 });
 
+// Helper function to filter vendas by month/year
+function filterVendasByMonth(vendas: any[], mes?: number, ano?: number) {
+  if (!mes || !ano) return vendas;
+  
+  return vendas.filter((venda) => {
+    const vendaDate = new Date(venda.data);
+    return vendaDate.getMonth() === mes - 1 && vendaDate.getFullYear() === ano;
+  });
+}
+
 // ===== KPIs DASHBOARD =====
 app.get("/api/kpis", async (req, res) => {
   try {
+    const { mes, ano } = req.query;
+    const mesNum = mes ? parseInt(mes as string) : undefined;
+    const anoNum = ano ? parseInt(ano as string) : undefined;
+
     // Fetch all vendas with their items and cliente
     const vendas = await prisma.venda.findMany({
       include: {
@@ -299,9 +313,12 @@ app.get("/api/kpis", async (req, res) => {
       },
     });
 
+    // Filter by month/year if provided
+    const vendasFiltradas = filterVendasByMonth(vendas, mesNum, anoNum);
+
     // Calculate KPIs
-    const totalVendas = vendas.length;
-    const faturamento = vendas.reduce((acc, v) => acc + v.total, 0);
+    const totalVendas = vendasFiltradas.length;
+    const faturamento = vendasFiltradas.reduce((acc, v) => acc + v.total, 0);
     const ticketMedio = totalVendas > 0 ? faturamento / totalVendas : 0;
 
     // Find best-selling product
@@ -309,7 +326,7 @@ app.get("/api/kpis", async (req, res) => {
     const servicoContagem: Record<string, number> = {};
     const clienteGasto: Record<number, { nome: string; total: number }> = {};
 
-    vendas.forEach((venda) => {
+    vendasFiltradas.forEach((venda) => {
       // Track client spending
       if (!clienteGasto[venda.clienteId]) {
         clienteGasto[venda.clienteId] = {
@@ -320,7 +337,7 @@ app.get("/api/kpis", async (req, res) => {
       clienteGasto[venda.clienteId]!.total += venda.total;
 
       // Track products and services
-      venda.itens.forEach((item) => {
+      venda.itens.forEach((item: any) => {
         if (item.tipo === "PRODUTO" && item.produtoId) {
           if (!produtoContagem[item.produtoId]) {
             produtoContagem[item.produtoId] = {
@@ -366,6 +383,134 @@ app.get("/api/kpis", async (req, res) => {
   } catch (error: any) {
     console.error("Erro ao calcular KPIs:", error);
     res.status(500).json({ error: "Failed to calculate KPIs", details: error?.message });
+  }
+});
+
+// Endpoint para evolução de faturamento por mês
+app.get("/api/kpis/evolucao-faturamento", async (req, res) => {
+  try {
+    const { ano } = req.query;
+    const anoNum = ano ? parseInt(ano as string) : new Date().getFullYear();
+
+    const vendas = await prisma.venda.findMany({
+      include: {
+        cliente: true,
+        itens: {
+          include: {
+            produto: true,
+          },
+        },
+      },
+    });
+
+    // Organize by month
+    const faturamentoPorMes: Record<number, number> = {};
+    for (let i = 1; i <= 12; i++) {
+      faturamentoPorMes[i] = 0;
+    }
+
+    vendas.forEach((venda) => {
+      const vendaDate = new Date(venda.data);
+      if (vendaDate.getFullYear() === anoNum) {
+        const mes = vendaDate.getMonth() + 1;
+        if (faturamentoPorMes[mes] !== undefined) {
+          faturamentoPorMes[mes] += venda.total;
+        }
+      }
+    });
+
+    const data = Object.entries(faturamentoPorMes).map(([mes, valor]) => ({
+      mes: parseInt(mes),
+      mesNome: new Date(anoNum, parseInt(mes) - 1).toLocaleString("pt-BR", { month: "short" }),
+      faturamento: Math.round(valor * 100) / 100,
+    }));
+
+    res.json(data);
+  } catch (error: any) {
+    console.error("Erro ao calcular evolução de faturamento:", error);
+    res.status(500).json({ error: "Failed to calculate faturamento evolution", details: error?.message });
+  }
+});
+
+// Endpoint para serviços mais vendidos
+app.get("/api/kpis/servicos-mais-vendidos", async (req, res) => {
+  try {
+    const { mes, ano } = req.query;
+    const mesNum = mes ? parseInt(mes as string) : undefined;
+    const anoNum = ano ? parseInt(ano as string) : undefined;
+
+    const vendas = await prisma.venda.findMany({
+      include: {
+        itens: true,
+      },
+    });
+
+    const vendasFiltradas = filterVendasByMonth(vendas, mesNum, anoNum);
+
+    const servicoContagem: Record<string, number> = {};
+    vendasFiltradas.forEach((venda) => {
+      venda.itens.forEach((item: any) => {
+        if (item.tipo === "SERVICO" && item.servico) {
+          servicoContagem[item.servico] = (servicoContagem[item.servico] || 0) + item.quantidade;
+        }
+      });
+    });
+
+    const data = Object.entries(servicoContagem)
+      .map(([servico, quantidade]) => ({ nome: servico, quantidade }))
+      .sort((a, b) => b.quantidade - a.quantidade)
+      .slice(0, 5);
+
+    res.json(data);
+  } catch (error: any) {
+    console.error("Erro ao calcular serviços mais vendidos:", error);
+    res.status(500).json({ error: "Failed to calculate top services", details: error?.message });
+  }
+});
+
+// Endpoint para produtos mais vendidos
+app.get("/api/kpis/produtos-mais-vendidos", async (req, res) => {
+  try {
+    const { mes, ano } = req.query;
+    const mesNum = mes ? parseInt(mes as string) : undefined;
+    const anoNum = ano ? parseInt(ano as string) : undefined;
+
+    const vendas = await prisma.venda.findMany({
+      include: {
+        itens: {
+          include: {
+            produto: true,
+          },
+        },
+      },
+    });
+
+    const vendasFiltradas = filterVendasByMonth(vendas, mesNum, anoNum);
+
+    const produtoContagem: Record<number, { nome: string; quantidade: number }> = {};
+    vendasFiltradas.forEach((venda) => {
+      venda.itens.forEach((item: any) => {
+        if (item.tipo === "PRODUTO" && item.produtoId) {
+          if (!produtoContagem[item.produtoId]) {
+            produtoContagem[item.produtoId] = {
+              nome: item.produto?.nome || "Produto desconhecido",
+              quantidade: 0,
+            };
+          }
+          produtoContagem[item.produtoId]!.quantidade += item.quantidade;
+        }
+      });
+    });
+
+    const data = Object.entries(produtoContagem)
+      .map(([, { nome, quantidade }]) => ({ nome, quantidade }))
+      .sort((a, b) => b.quantidade - a.quantidade)
+      .slice(0, 5);
+
+    res.json(data);
+  } catch (error: any) {
+    console.error("Erro ao calcular produtos mais vendidos:", error);
+    res.status(500).json({ error: "Failed to calculate top products", details: error?.message });
   }
 });
 
