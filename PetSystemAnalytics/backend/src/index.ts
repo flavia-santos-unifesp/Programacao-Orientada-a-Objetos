@@ -69,7 +69,11 @@ app.post("/api/clientes", async (req, res) => {
 // ===== PETS =====
 app.get("/api/pets", async (req, res) => {
   try {
-    const pets = await prisma.pet.findMany();
+    const pets = await prisma.pet.findMany({
+      include: {
+        cliente: true,
+      },
+    });
     res.json(pets);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch pets" });

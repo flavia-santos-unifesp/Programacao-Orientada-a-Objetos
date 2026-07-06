@@ -216,13 +216,13 @@ export function ComprarServico() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-      <h1 style={{ color: "var(--text-h)", fontSize: "2.25rem", margin: 0 }}>
-        🛒 Comprar Serviço com Agendamento
+      <h1 style={{ color: "var(--text-h)", fontSize: "1.5rem", margin: 0 }}>
+      Comprar Serviço com Agendamento
       </h1>
 
       {erro && (
         <div style={{ background: "#fee", border: "1px solid red", padding: "0.75rem", borderRadius: "4px", color: "red" }}>
-          ❌ {erro}
+        {erro}
         </div>
       )}
 
@@ -236,7 +236,7 @@ export function ComprarServico() {
           boxShadow: "var(--shadow)",
         }}
       >
-        <h2 style={{ color: "var(--text-h)", margin: "0 0 1rem" }}>1. Cliente e Pet</h2>
+        <h2 style={{ color: "var(--text-h)", margin: "0 0 1rem", fontSize: "1.25rem" }}>1. Cliente e Pet</h2>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
           <div>
@@ -288,7 +288,7 @@ export function ComprarServico() {
           boxShadow: "var(--shadow)",
         }}
       >
-        <h2 style={{ color: "var(--text-h)", margin: "0 0 1rem" }}>2. Selecione um Serviço</h2>
+        <h2 style={{ color: "var(--text-h)", margin: "0 0 1rem", fontSize: "1.25rem" }}>2. Selecione um Serviço</h2>
 
         <div
           style={{
@@ -306,7 +306,7 @@ export function ComprarServico() {
                 style={{
                   padding: "1rem",
                   background: tipoServicoSelecionado === tipo ? "var(--accent)" : "var(--code-bg)",
-                  color: "white",
+                  color: "black",
                   border: "none",
                   borderRadius: "6px",
                   cursor: "pointer",
@@ -322,7 +322,7 @@ export function ComprarServico() {
                     : `R$ ${info.precoBase.toFixed(2)}`}
                 </div>
                 <div style={{ fontSize: "0.8rem", opacity: 0.7, marginTop: "0.25rem" }}>
-                  ⏱️ {Math.floor(info.duracao / 60)}h {info.duracao % 60}m
+                {Math.floor(info.duracao / 60)}h {info.duracao % 60}m
                 </div>
               </button>
             );

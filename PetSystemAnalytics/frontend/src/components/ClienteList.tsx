@@ -4,7 +4,23 @@ interface ClienteListProps {
   clientes: ClienteResponse[];
 }
 
+const estilosNivel = {
+  BRONZE: {
+    color: "#CD7F32",
+    background: "#fef3e2"
+  },
+  PRATA: {
+    color: "#9ca3af",
+    background: "#f3f4f6"
+  },
+  OURO: {
+    color: "#d9b206",
+    background: "#fef9c3"
+  }
+};
+
 export function ClienteList({ clientes }: ClienteListProps) {
+  
   return (
     <div style={{
       background: "var(--bg)",
@@ -17,7 +33,8 @@ export function ClienteList({ clientes }: ClienteListProps) {
         color: "var(--text-h)",
         padding: "1.5rem",
         borderBottom: "1px solid var(--border)",
-        margin: 0
+        margin: 0,
+        fontSize: "1.25rem"
       }}>Clientes</h2>
 
       <table style={{
@@ -50,8 +67,8 @@ export function ClienteList({ clientes }: ClienteListProps) {
                 <span style={{
                   padding: "0.25rem 0.75rem",
                   borderRadius: "4px",
-                  background: "var(--accent-bg)",
-                  color: "var(--accent)",
+                  background: estilosNivel[cliente.nivelFidelidade].background,
+                  color: estilosNivel[cliente.nivelFidelidade].color,
                   fontWeight: "600"
                 }}>
                   {cliente.nivelFidelidade}

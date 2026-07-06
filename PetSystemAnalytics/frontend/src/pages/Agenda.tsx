@@ -37,6 +37,7 @@ const HORA_INICIO = 8;
 const HORA_FIM = 17;
 const SLOT_MINUTOS = 15;
 const PIXELS_POR_HORA = 64;
+const HEADER_HEIGHT = 38;
 const WORK_MINUTES = (HORA_FIM - HORA_INICIO) * 60;
 
 const diasSemanaPt = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
@@ -179,7 +180,9 @@ export function Agenda() {
     return t;
   }, []);
 
-  const gridHeight = ((HORA_FIM - HORA_INICIO) * PIXELS_POR_HORA);
+
+  const gridHeight = (HORA_FIM - HORA_INICIO) * PIXELS_POR_HORA;
+  const totalHeight = gridHeight + HEADER_HEIGHT;
 
   const headerStyle: React.CSSProperties = {
     display: "flex",
@@ -206,14 +209,14 @@ export function Agenda() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-      <h1 style={{ color: "var(--text-h)", margin: 0 }}>📅 Agenda de Serviços</h1>
+      <h1 style={{ color: "var(--text-h)", margin: 0,fontSize: "1.5rem"}}>Agenda de Serviços</h1>
       <p style={{ margin: 0, color: "var(--text-muted)" }}>
         Visualização semanal por funcionário, com blocos de alocação e espaços livres para disponibilidade.
       </p>
 
       {error && (
         <div style={{ background: "#fee", color: "#b00020", border: "1px solid #f5a5a5", padding: "0.8rem", borderRadius: "8px" }}>
-          ❌ {error}
+         {error}
         </div>
       )}
 
@@ -284,15 +287,15 @@ export function Agenda() {
               }}
             >
               <div style={{ padding: "0.9rem 1rem", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <strong style={{ color: "var(--text-h)" }}>👤 {funcionario.nome}</strong>
+                <strong style={{ color: "var(--text-h)" }}>{funcionario.nome}</strong>
                 <span style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>{funcionario.cargo}</span>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "90px repeat(7, 1fr)", minHeight: gridHeight + 48 }}>
-                <div style={{ borderRight: "1px solid var(--border)", position: "relative", background: "var(--code-bg)" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "90px repeat(7, 1fr)", minHeight: totalHeight}}>
+                <div style={{ borderRight: "1px solid var(--border)", position: "relative", background: "var(--code-bg)",height: totalHeight }}>
                   {Array.from({ length: HORA_FIM - HORA_INICIO + 1 }).map((_, i) => {
                     const hour = HORA_INICIO + i;
-                    const top = (i * PIXELS_POR_HORA);
+                    const top = HEADER_HEIGHT + (i * PIXELS_POR_HORA);
                     return (
                       <div
                         key={hour}
@@ -301,10 +304,11 @@ export function Agenda() {
                           top,
                           left: 0,
                           right: 0,
-                          transform: "translateY(-50%)",
+                        //   transform: "translateY(-50%)",
                           fontSize: "0.8rem",
                           color: "var(--text-muted)",
                           textAlign: "center",
+                        //   paddingTop: 90,
                         }}
                       >
                         {String(hour).padStart(2, "0")}:00

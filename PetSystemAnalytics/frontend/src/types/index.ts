@@ -45,6 +45,7 @@ export interface CreatePetDTO {
   peso: number;
   porte: Porte;
   clienteId: number;
+  cliente: CreateClienteDTO;
 }
 
 export interface PetResponse extends CreatePetDTO {

@@ -34,7 +34,7 @@ export function Equipe() {
 
   const sectionStyle: React.CSSProperties = {
     background: "var(--bg)",
-    padding: "2rem",
+    padding: "1.5rem",
     borderRadius: "8px",
     border: "1px solid var(--border)",
     marginBottom: "2rem",
@@ -81,8 +81,8 @@ export function Equipe() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-      <h1 style={{ color: "var(--text-h)", fontSize: "2.25rem", margin: 0 }}>
-        👥 Equipe do Projeto
+      <h1 style={{ color: "var(--text-h)", fontSize: "1.5rem", margin: 0 }}>
+        Equipe do Projeto
       </h1>
 
       {/* Descrição */}
@@ -115,7 +115,7 @@ export function Equipe() {
               (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
             }}
           >
-            <div style={nameStyle}>👤 {member.nome}</div>
+            <div style={nameStyle}>{member.nome}</div>
             <div style={funcaoStyle}>{member.funcao}</div>
             <div style={{ color: "var(--text)", marginBottom: "0.5rem", fontWeight: "600" }}>
               Contribuições:
@@ -129,32 +129,6 @@ export function Equipe() {
         ))}
       </div>
 
-      {/* Tecnologias */}
-      <div style={sectionStyle}>
-        <h2 style={titleStyle}>🛠️ Tecnologias Utilizadas</h2>
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: "1rem"
-        }}>
-          {["TypeScript", "Node.js", "Express", "React", "Prisma", "PostgreSQL"].map((tech) => (
-            <div
-              key={tech}
-              style={{
-                background: "var(--accent-bg)",
-                border: "1px solid var(--accent-border)",
-                padding: "1rem",
-                borderRadius: "4px",
-                textAlign: "center",
-                color: "var(--accent)",
-                fontWeight: "600"
-              }}
-            >
-              {tech}
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

@@ -66,7 +66,7 @@ export function PetForm({ clienteId, onSubmit }: PetFormProps) {
       border: "1px solid var(--border)",
       boxShadow: "var(--shadow)"
     }}>
-      <h2 style={{ color: "var(--text-h)", marginBottom: "1rem" }}>Novo Pet</h2>
+      <h2 style={{ color: "var(--text-h)", marginBottom: "1rem", fontSize: "1.25rem" }}>Novo Pet</h2>
 
       <div style={{ marginBottom: "1rem" }}>
         <label style={{ display: "block", color: "var(--text)", marginBottom: "0.5rem" }}>Cliente</label>

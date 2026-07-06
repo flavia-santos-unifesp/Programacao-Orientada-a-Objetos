@@ -1,23 +1,35 @@
-:root {
-  --text: #5f4f52;
-  --text-h: #151112;
-  --bg: #f7f1f2;
-  --border: #decfd2;
-  --code-bg: #eadedf;
-  --accent: #5f7d68;
-  --accent-bg: rgba(95, 125, 104, 0.14);
-  --accent-border: rgba(95, 125, 104, 0.45);
-  --social-bg: rgba(234, 222, 223, 0.65);
-  --input-bg: #fff8f8;
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+:root {
+  /* Miko Design Inspired Pastel Palette - Pure Soft Light Mode */
+  --miko-bg-cream: #faf8f6;       /* Warm off-white canvas */
+  --miko-blush: #fcf6f5;          /* Extremely soft pink highlight */
+  --miko-blush-dark: #f5e6e3;     /* Muted soft clay pink */
+  --miko-clay: #bd9e96;           /* Warm clay rose accent (soft borders) */
+  --miko-sage: #5f7d68;           /* Muted sage green accent */
+  --miko-sage-light: #e6ece8;     /* Sage green tint */
+  --miko-charcoal: #111111;       /* Deep off-black (for text headers only) */
+  --miko-charcoal-light: #3a3031; /* Warm dark gray */
+
+  /* Map to the original variable names used in frontend components */
+  --text: var(--miko-charcoal-light);
+  --text-h: var(--miko-charcoal);
+  --bg: var(--miko-bg-cream);
+  --border: var(--miko-clay);     /* Soft warm clay instead of black */
+  --code-bg: var(--miko-blush-dark);
+  --accent: var(--miko-sage);
+  --accent-bg: var(--miko-sage-light);
+  --accent-border: var(--miko-clay);
+  --social-bg: var(--miko-blush-dark);
+  --input-bg: #ffffff;
+  --shadow: 4px 4px 0px 0px var(--miko-blush-dark); /* Soft pastel offset shadow */
+
+  --sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --heading: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
+  font: 16px/150% var(--sans);
+  letter-spacing: 0.15px;
   color-scheme: light;
   color: var(--text);
   background: var(--bg);
@@ -27,7 +39,7 @@
   -moz-osx-font-smoothing: grayscale;
 
   @media (max-width: 1024px) {
-    font-size: 16px;
+    font-size: 15px;
   }
 }
 
@@ -36,7 +48,7 @@
   max-width: none;
   margin: 0;
   text-align: left;
-  min-height: 100svh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -45,49 +57,220 @@
 body {
   margin: 0;
   width: 100%;
-  background: var(--bg);
+  background-color: var(--bg);
+  /* Elegant grid background representing pattern templates */
+  background-image: 
+    linear-gradient(to right, rgba(189, 158, 150, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(189, 158, 150, 0.07) 1px, transparent 1px);
+  background-size: 20px 20px;
 }
 
+/* Typography Redesign */
 h1,
-h2 {
+h2,
+h3,
+h4 {
   font-family: var(--heading);
-  font-weight: 500;
+  font-weight: 700;
   color: var(--text-h);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
+  font-size: 2.25rem;
+  line-height: 1.2;
+  margin: 0 0 1.5rem 0;
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px dashed var(--miko-clay);
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+h2 {
+  font-size: 1.5rem;
+  line-height: 1.3;
+  margin: 0 0 1rem 0;
+  color: var(--miko-charcoal);
+  border-bottom: 1px dashed var(--miko-clay);
+  padding-bottom: 0.5rem;
+}
+
+h3 {
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem 0;
+}
+
+p {
+  margin: 0 0 1rem 0;
+  line-height: 1.6;
 }
 
 code {
-  font-size: 15px;
+  font-family: var(--mono);
+  font-size: 14px;
   line-height: 135%;
-  padding: 4px 8px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  color: var(--miko-charcoal);
   background: var(--code-bg);
+  border: 1px solid rgba(189, 158, 150, 0.3);
+}
+
+/* Header & Banner Styles - Pure Light Mode */
+header {
+  background-color: #ffffff !important;
+  border-bottom: 2px solid var(--miko-clay) !important;
+  padding: 1.25rem 2rem !important;
+  box-shadow: 0 2px 4px rgba(189, 158, 150, 0.08) !important;
+  display: flex !important;
+  align-items: center;
+}
+
+header h1 {
+  color: var(--miko-charcoal) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.15em !important;
+  font-size: 1.6rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-bottom: none !important;
+}
+
+header h1::after {
+  content: none !important;
+}
+
+/* Container Cards and Forms Redesign - Soft outlines */
+main div[style*="border: 1px solid var(--border)"],
+main div[style*="border-right: 1px solid var(--border)"],
+main div[style*="border: 1px solid"],
+main div[style*="border: 1px solid rgb"],
+form {
+  background-color: #ffffff !important;
+  border: 1.5px solid var(--miko-clay) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--shadow) !important;
+  padding: 2rem !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+main div[style*="border: 1px solid var(--border)"]:hover,
+form:hover {
+  transform: translate(-2px, -2px) !important;
+  box-shadow: 6px 6px 0px 0px var(--miko-blush-dark) !important;
+}
+
+/* Form Controls and Inputs - Soft outlines */
+input[type="text"],
+input[type="tel"],
+input[type="email"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+select,
+textarea {
+  background-color: #ffffff !important;
+  border: 1.5px solid var(--miko-clay) !important;
+  border-radius: 6px !important;
+  padding: 0.75rem 1rem !important;
+  color: var(--miko-charcoal) !important;
+  font-family: var(--sans) !important;
+  font-size: 0.95rem !important;
+  transition: all 0.2s ease-in-out !important;
+  outline: none !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--miko-sage) !important;
+  box-shadow: 0 0 0 3px rgba(95, 125, 104, 0.25) !important;
+}
+
+/* Tables Customization - Soft outlines */
+table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  border: 1.5px solid var(--miko-clay) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  background-color: #ffffff !important;
+  margin-top: 1rem;
+}
+
+thead tr, tr[style*="background: var(--code-bg)"] {
+  background-color: var(--miko-blush-dark) !important;
+  background: var(--miko-blush-dark) !important;
+}
+
+th {
+  padding: 1rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  font-size: 0.8rem !important;
+  letter-spacing: 0.05em !important;
+  color: var(--miko-charcoal) !important;
+  border-bottom: 1.5px solid var(--miko-clay) !important;
+  border-right: 1.5px solid var(--miko-clay) !important;
+}
+
+th:last-child {
+  border-right: none !important;
+}
+
+td {
+  padding: 1rem !important;
+  color: var(--miko-charcoal-light) !important;
+  border-bottom: 1.5px solid var(--miko-clay) !important;
+  border-right: 1.5px solid var(--miko-clay) !important;
+  background-color: #ffffff !important;
+  transition: background-color 0.2s !important;
+}
+
+td:last-child {
+  border-right: none !important;
+}
+
+tr:last-child td {
+  border-bottom: none !important;
+}
+
+tr:hover td {
+  background-color: var(--miko-blush) !important;
+}
+
+/* Status / Loyalty Badges in tables */
+td span[style*="background: var(--accent-bg)"] {
+  background-color: var(--miko-sage-light) !important;
+  color: var(--miko-charcoal) !important;
+  border: 1.5px solid var(--miko-clay) !important;
+  border-radius: 4px !important;
+  padding: 0.25rem 0.5rem !important;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  display: inline-block !important;
+}
+
+/* Custom Scrollbar for modern feel */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--miko-bg-cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--miko-clay);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--miko-sage);
 }

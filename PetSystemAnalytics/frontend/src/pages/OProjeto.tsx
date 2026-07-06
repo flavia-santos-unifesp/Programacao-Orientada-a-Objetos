@@ -38,8 +38,8 @@ export function OProjeto() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-      <h1 style={{ color: "var(--text-h)", fontSize: "2.25rem", margin: 0 }}>
-        📋 O Projeto
+      <h1 style={{ color: "var(--text-h)", fontSize: "1.5rem", margin: 0 }}>
+      Projeto
       </h1>
 
       {/* Sobre */}
@@ -63,7 +63,7 @@ export function OProjeto() {
 
       {/* Funcionalidades */}
       <div style={sectionStyle}>
-        <h2 style={titleStyle}>🎯 Funcionalidades Principais</h2>
+        <h2 style={titleStyle}>Funcionalidades Principais</h2>
         <ul style={listStyle}>
           <li>Gestão de Clientes com programa de fidelidade</li>
           <li>Cadastro e controle de Pets</li>
@@ -79,7 +79,7 @@ export function OProjeto() {
 
       {/* Conceitos POO */}
       <div style={sectionStyle}>
-        <h2 style={titleStyle}>🏗️ Conceitos de POO Aplicados</h2>
+        <h2 style={titleStyle}>Conceitos de POO Aplicados</h2>
 
         <div style={featureItemStyle}>
           <h3 style={{ color: "var(--accent)", margin: "0 0 0.5rem 0" }}>Herança</h3>
@@ -150,7 +150,7 @@ export function OProjeto() {
 
       {/* Arquitetura */}
       <div style={sectionStyle}>
-        <h2 style={titleStyle}>🏛️ Arquitetura do Projeto</h2>
+        <h2 style={titleStyle}>Arquitetura do Projeto</h2>
         <p style={textStyle}>
           O projeto segue uma arquitetura em camadas bem definida:
         </p>
@@ -165,6 +165,34 @@ export function OProjeto() {
           <li><strong>Frontend:</strong> Interface intuitiva em React + TypeScript</li>
         </ul>
       </div>
+
+      {/* Tecnologias */}
+      <div style={sectionStyle}>
+        <h2 style={titleStyle}>Tecnologias Utilizadas</h2>
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: "1rem"
+        }}>
+          {["TypeScript", "Node.js", "Express", "React", "Prisma", "PostgreSQL"].map((tech) => (
+            <div
+              key={tech}
+              style={{
+                background: "var(--accent-bg)",
+                border: "1px solid var(--accent-border)",
+                padding: "1rem",
+                borderRadius: "4px",
+                textAlign: "center",
+                color: "var(--accent)",
+                fontWeight: "600"
+              }}
+            >
+              {tech}
+            </div>
+          ))}
+        </div>
+      </div>
+      
     </div>
   );
 }

@@ -17,7 +17,8 @@ export function VendaList({ vendas }: VendaListProps) {
         color: "var(--text-h)",
         padding: "1.5rem",
         borderBottom: "1px solid var(--border)",
-        margin: 0
+        margin: 0,
+        fontSize: "1.25rem"
       }}>Vendas Registradas</h2>
 
       <table style={{

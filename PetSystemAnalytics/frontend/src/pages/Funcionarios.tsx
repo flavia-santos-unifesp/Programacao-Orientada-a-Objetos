@@ -40,8 +40,8 @@ export function Funcionarios() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-      <h1 style={{ color: "var(--text-h)", fontSize: "2.25rem", margin: 0 }}>
-        👥 Gerenciamento de Funcionários
+      <h1 style={{ color: "var(--text-h)", fontSize: "1.5rem", margin: 0 }}>
+      Gerenciamento de Funcionários
       </h1>
 
       {showForm && (
@@ -57,7 +57,7 @@ export function Funcionarios() {
       )}
 
       <div style={sectionStyle}>
-        <h2 style={{ color: "var(--accent)", marginTop: 0 }}>Lista de Funcionários</h2>
+        <h2 style={{ color: "var(--accent)", marginTop: 0, fontSize: "1.25rem" }}>Lista de Funcionários</h2>
         <FuncionarioList key={refreshKey} />
       </div>
     </div>

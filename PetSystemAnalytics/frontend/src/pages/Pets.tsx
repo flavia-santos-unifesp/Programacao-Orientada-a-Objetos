@@ -42,8 +42,8 @@ export function Pets() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-      <h1 style={{ color: "var(--text-h)", fontSize: "2.25rem", margin: 0 }}>
-        🐕 Gestão de Pets
+      <h1 style={{ color: "var(--text-h)", fontSize: "1.5rem", margin: 0 }}>
+        Gestão de Pets
       </h1>
       {error && <div style={{ color: "red", padding: "0.5rem" }}>{error}</div>}
       {loading ? <p>Carregando...</p> : <PetForm onSubmit={handleAddPet} />}

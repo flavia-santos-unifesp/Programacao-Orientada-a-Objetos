@@ -31,6 +31,27 @@ export function FuncionarioForm({ onSubmit }: FuncionarioFormProps) {
     }));
   };
 
+  // Função para formatar telefone
+  const formatTelefone = (value: string): string => {
+    // Remove tudo que não é número
+    const números = value.replace(/\D/g, "");
+
+    // Limita a 11 dígitos
+    const limitado = números.slice(0, 11);
+
+    // Aplica a máscara
+    if (limitado.length === 0) return "";
+    if (limitado.length <= 2) return `(${limitado}`;
+    if (limitado.length <= 7) return `(${limitado.slice(0, 2)}) ${limitado.slice(2)}`;
+    return `(${limitado.slice(0, 2)}) ${limitado.slice(2, 7)}-${limitado.slice(7)}`;
+  };
+  
+  const handleTelefoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const valor = e.target.value;
+    const telefoneFormatado = formatTelefone(valor);
+    setFormData({ ...formData, telefone: telefoneFormatado });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -103,11 +124,11 @@ export function FuncionarioForm({ onSubmit }: FuncionarioFormProps) {
 
   return (
     <form onSubmit={handleSubmit} style={formStyle}>
-      <h2 style={{ color: 'var(--accent)', marginTop: 0 }}>Cadastrar Funcionário</h2>
+      <h2 style={{ color: 'var(--accent)', marginTop: 0, fontSize: '1.25rem' }}>Cadastrar Funcionário</h2>
 
       {error && (
         <div style={{ background: '#f8d7da', color: '#721c24', padding: '1rem', borderRadius: '4px', marginBottom: '1rem' }}>
-          ❌ {error}
+        {error}
         </div>
       )}
 
@@ -142,7 +163,7 @@ export function FuncionarioForm({ onSubmit }: FuncionarioFormProps) {
         name="telefone"
         placeholder="Telefone"
         value={formData.telefone}
-        onChange={handleChange}
+        onChange={handleTelefoneChange}
         style={inputStyle}
         required
       />

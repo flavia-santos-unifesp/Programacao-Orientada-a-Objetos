@@ -29,7 +29,7 @@ export default function App() {
         padding: "2rem",
         boxShadow: "var(--shadow)"
       }}>
-        <h1 style={{ margin: 0, fontSize: "2rem" }}>🐾 Pet System Analytics</h1>
+        <h1 style={{ margin: 0, fontSize: "2rem" }}>Pet System Analytics</h1>
       </header>
 
       {/* Main Container */}
@@ -44,36 +44,36 @@ export default function App() {
         }}>
           <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
             {[
-              { id: "dashboard", icon: "📊", label: "Dashboard" },
-              { id: "clientes", icon: "👥", label: "Clientes" },
-              { id: "pets", icon: "🐕", label: "Pets" },
-              { id: "produtos", icon: "📦", label: "Produtos" },
-              { id: "servicos", icon: "🐾", label: "Serviços" },
-              { id: "vendas", icon: "🛒", label: "Vendas" },
-              { id: "comprar-servico", icon: "💇", label: "Agendar Serviço" },
-              { id: "funcionarios", icon: "👔", label: "Funcionários" },
-              { id: "agenda", icon: "📅", label: "Agenda" },
-              { id: "projeto", icon: "📋", label: "O Projeto" },
-              { id: "equipe", icon: "👥", label: "Equipe" }
+              { id: "dashboard", label: "Dashboard" },
+              { id: "clientes", label: "Clientes" },
+              { id: "pets", label: "Pets" },
+              { id: "produtos", label: "Produtos" },
+              { id: "servicos", label: "Serviços" },
+              { id: "vendas", label: "Vendas" },
+              { id: "comprar-servico", label: "Agendar Serviço" },
+              { id: "funcionarios", label: "Funcionários" },
+              { id: "agenda", label: "Agenda" },
+              { id: "projeto", label: "Projeto" },
+              { id: "equipe", label: "Equipe" }
             ].map((item) => (
               <li key={item.id} style={{ marginBottom: "0.5rem" }}>
                 <button
-                  onClick={() => setCurrentPage(item.id as Page)}
-                  style={{
-                    width: "100%",
-                    textAlign: "left",
-                    padding: "0.75rem",
-                    border: "none",
-                    borderRadius: "4px",
-                    background: currentPage === item.id ? "var(--accent)" : "transparent",
-                    color: currentPage === item.id ? "white" : "var(--text)",
-                    cursor: "pointer",
-                    fontFamily: "var(--sans)",
-                    fontSize: "1rem",
-                    transition: "all 0.2s"
-                  }}
+                   onClick={() => setCurrentPage(item.id as Page)}
+                   style={{
+                     width: "100%",
+                     textAlign: "left",
+                     padding: "0.75rem",
+                     border: "none",
+                     borderRadius: "4px",
+                     background: currentPage === item.id ? "var(--accent)" : "transparent",
+                     color: currentPage === item.id ? "white" : "var(--text)",
+                     cursor: "pointer",
+                     fontFamily: "var(--sans)",
+                     fontSize: "1rem",
+                     transition: "all 0.2s"
+                   }}
                 >
-                  {item.icon} {item.label}
+                  {item.label}
                 </button>
               </li>
             ))}

@@ -57,7 +57,7 @@ export class PetMapper {
             peso: pet.getPeso(),
 
             porte: pet.getPorte() as PrismaPorte
-
+            
         };
 
     }

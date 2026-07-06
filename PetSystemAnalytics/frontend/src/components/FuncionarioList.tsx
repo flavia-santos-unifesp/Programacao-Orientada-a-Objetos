@@ -76,7 +76,7 @@ export function FuncionarioList() {
   if (error) {
     return (
       <div style={{ color: '#dc3545', padding: '1rem', background: '#f8d7da', borderRadius: '4px' }}>
-        ❌ {error}
+      {error}
       </div>
     );
   }
@@ -103,7 +103,6 @@ export function FuncionarioList() {
               </p>
             </div>
             <div>
-              <button style={buttonStyle}>Editar</button>
               <button 
                 style={{ ...buttonStyle, background: '#dc3545' }}
                 onClick={() => handleDelete(funcionario.id)}

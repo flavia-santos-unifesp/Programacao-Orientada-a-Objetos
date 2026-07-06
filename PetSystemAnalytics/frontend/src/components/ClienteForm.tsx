@@ -53,12 +53,12 @@ export function ClienteForm({ onSubmit }: ClienteFormProps) {
   return (
     <form onSubmit={handleSubmit} style={{
       background: "var(--bg)",
-      padding: "1.5rem",
+      padding: "1rem",
       borderRadius: "8px",
       border: "1px solid var(--border)",
       boxShadow: "var(--shadow)"
     }}>
-      <h2 style={{ color: "var(--text-h)", marginBottom: "1rem" }}>Novo Cliente</h2>
+      <h2 style={{ color: "var(--text-h)", marginBottom: "1rem", fontSize: "1.25rem" }}>Novo Cliente</h2>
 
       <div style={{ marginBottom: "1rem" }}>
         <label style={{ display: "block", color: "var(--text)", marginBottom: "0.5rem" }}>Nome</label>

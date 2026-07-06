@@ -87,7 +87,7 @@ export function VendaForm({ onSubmit }: VendaFormProps) {
 
   return (
     <form onSubmit={handleSubmit} style={{ background: "var(--bg)", padding: "1.5rem", borderRadius: "8px", border: "1px solid var(--border)", boxShadow: "var(--shadow)", display: "flex", flexDirection: "column", gap: "1rem" }}>
-      <h2 style={{ color: "var(--text-h)", margin: 0 }}>Registrar Venda</h2>
+      <h2 style={{ color: "var(--text-h)", margin: 0, fontSize: "1.25rem" }}>Registrar Venda</h2>
 
       {/* Cliente */}
       <div>
@@ -108,11 +108,7 @@ export function VendaForm({ onSubmit }: VendaFormProps) {
       {/* Adicionar item de produto */}
       <div style={{ border: "1px solid var(--border)", borderRadius: "6px", padding: "1rem" }}>
         <h3 style={{ color: "var(--text-h)", margin: "0 0 0.75rem" }}>Adicionar Produto</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr 1fr 1fr auto", gap: "0.5rem", alignItems: "end" }}>
-          <div>
-            <label style={{ display: "block", color: "var(--text)", marginBottom: "0.3rem", fontSize: "0.85rem" }}>Tipo</label>
-            <input value="PRODUTO" disabled style={{ ...inputStyle, width: "100%", opacity: 0.8 }} />
-          </div>
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr auto", gap: "0.5rem", alignItems: "end" }}>
           <div>
             <label style={{ display: "block", color: "var(--text)", marginBottom: "0.3rem", fontSize: "0.85rem" }}>Produto</label>
             <select value={produtoId} onChange={(e) => handleProdutoChange(e.target.value)} style={inputStyle}>

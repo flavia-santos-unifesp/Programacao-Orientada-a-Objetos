@@ -47,12 +47,12 @@ export function Produtos() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-      <h1 style={{ color: "var(--text-h)", fontSize: "2.25rem", margin: 0 }}>📦 Gestão de Produtos</h1>
+      <h1 style={{ color: "var(--text-h)", fontSize: "1.5rem", margin: 0 }}>Gestão de Produtos</h1>
 
       {error && <div style={{ color: "red", padding: "0.5rem" }}>{error}</div>}
 
       <form onSubmit={handleAddProduto} style={{ background: "var(--bg)", padding: "1.5rem", borderRadius: "8px", border: "1px solid var(--border)", boxShadow: "var(--shadow)" }}>
-        <h2 style={{ color: "var(--text-h)", marginBottom: "1rem", marginTop: 0 }}>Novo Produto</h2>
+        <h2 style={{ color: "var(--text-h)", marginBottom: "1rem", marginTop: 0, fontSize: "1.25rem" }}>Novo Produto</h2>
         <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr auto", gap: "1rem", alignItems: "end" }}>
           <div>
             <label style={{ display: "block", color: "var(--text)", marginBottom: "0.4rem" }}>Nome</label>
@@ -73,7 +73,7 @@ export function Produtos() {
       </form>
 
       <div style={{ background: "var(--bg)", borderRadius: "8px", border: "1px solid var(--border)", overflow: "hidden", boxShadow: "var(--shadow)" }}>
-        <h2 style={{ color: "var(--text-h)", padding: "1.5rem", borderBottom: "1px solid var(--border)", margin: 0 }}>Produtos Cadastrados</h2>
+        <h2 style={{ color: "var(--text-h)", padding: "1.5rem", borderBottom: "1px solid var(--border)", margin: 0, fontSize: "1.25rem" }}>Produtos Cadastrados</h2>
         {loading ? <p style={{ padding: "1rem" }}>Carregando...</p> : (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>

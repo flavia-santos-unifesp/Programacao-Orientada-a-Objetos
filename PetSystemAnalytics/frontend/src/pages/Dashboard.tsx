@@ -113,7 +113,7 @@ export function Dashboard({ kpis: initialKpis }: DashboardProps) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-      <h1 style={{ color: "var(--text-h)", fontSize: "2.25rem" }}>📊 Dashboard</h1>
+      <h1 style={{ color: "var(--text-h)", fontSize: "1.5rem" }}>Dashboard</h1>
 
       {/* Filtros */}
       <div style={filterStyle}>
@@ -159,14 +159,14 @@ export function Dashboard({ kpis: initialKpis }: DashboardProps) {
         <div style={cardStyle}>
           <h3 style={cardTitleStyle}>Faturamento</h3>
           <p style={cardValueStyle}>
-            R$ {kpis.faturamento.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+            R$ {kpis.faturamento.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
         </div>
 
         <div style={cardStyle}>
           <h3 style={cardTitleStyle}>Ticket Médio</h3>
           <p style={cardValueStyle}>
-            R$ {kpis.ticketMedio.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+            R$ {kpis.ticketMedio.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </p>
         </div>
 
@@ -200,7 +200,7 @@ export function Dashboard({ kpis: initialKpis }: DashboardProps) {
       }}>
         {/* Evolução de Faturamento */}
         <div style={chartContainerStyle}>
-          <h3 style={chartTitleStyle}>📈 Evolução de Faturamento</h3>
+          <h3 style={chartTitleStyle}>Evolução de Faturamento</h3>
           {evolucaoFaturamento.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={evolucaoFaturamento}>
@@ -218,7 +218,7 @@ export function Dashboard({ kpis: initialKpis }: DashboardProps) {
 
         {/* Serviços Mais Vendidos */}
         <div style={chartContainerStyle}>
-          <h3 style={chartTitleStyle}>🐾 Serviços Mais Vendidos - {ano}</h3>
+          <h3 style={chartTitleStyle}>Serviços Mais Vendidos - {ano}</h3>
           <p style={{ color: "var(--text-muted)", fontSize: "0.875rem", marginBottom: "1rem" }}>Dados de todo o ano</p>
           {servicosMaisVendidos.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
@@ -241,7 +241,7 @@ export function Dashboard({ kpis: initialKpis }: DashboardProps) {
 
         {/* Produtos Mais Vendidos */}
         <div style={chartContainerStyle}>
-          <h3 style={chartTitleStyle}>📦 Produtos Mais Vendidos - {ano}</h3>
+          <h3 style={chartTitleStyle}>Produtos Mais Vendidos - {ano}</h3>
           <p style={{ color: "var(--text-muted)", fontSize: "0.875rem", marginBottom: "1rem" }}>Dados de todo o ano</p>
           {produtosMaisVendidos.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
