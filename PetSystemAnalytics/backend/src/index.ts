@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import { prisma } from "./database/prisma";
+import { RelatorioAgenda } from "./reports/RelatorioAgenda";
 
 const app = express();
 app.use(express.json());
@@ -523,6 +524,392 @@ app.get("/api/kpis/produtos-mais-vendidos", async (req, res) => {
   } catch (error: any) {
     console.error("Erro ao calcular produtos mais vendidos:", error);
     res.status(500).json({ error: "Failed to calculate top products", details: error?.message });
+  }
+});
+
+// ===== FUNCIONARIOS =====
+app.get("/api/funcionarios", async (req, res) => {
+  try {
+    const funcionarios = await prisma.funcionario.findMany();
+    res.json(funcionarios);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch funcionarios" });
+  }
+});
+
+app.get("/api/funcionarios/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const funcionario = await prisma.funcionario.findUnique({
+      where: { id: parseInt(id) },
+    });
+    if (!funcionario) {
+      return res.status(404).json({ error: "Funcionário não encontrado" });
+    }
+    res.json(funcionario);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch funcionario" });
+  }
+});
+
+app.get("/api/funcionarios/cargo/:cargo", async (req, res) => {
+  try {
+    const { cargo } = req.params;
+    const funcionarios = await prisma.funcionario.findMany({
+      where: { cargo },
+    });
+    res.json(funcionarios);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch funcionarios by cargo" });
+  }
+});
+
+app.post("/api/funcionarios", async (req, res) => {
+  try {
+    const { nome, email, telefone, cargo } = req.body;
+    
+    if (!nome || !email || !telefone || !cargo) {
+      return res.status(400).json({ error: "Nome, email, telefone e cargo são obrigatórios" });
+    }
+
+    const funcionario = await prisma.funcionario.create({
+      data: { nome, email, telefone, cargo },
+    });
+    res.status(201).json(funcionario);
+  } catch (error: any) {
+    console.error("Erro ao criar funcionário:", error);
+    res.status(500).json({ 
+      error: "Failed to create funcionario",
+      details: error?.message || String(error)
+    });
+  }
+});
+
+app.delete("/api/funcionarios/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await prisma.funcionario.delete({
+      where: { id: parseInt(id) },
+    });
+    res.status(204).send();
+  } catch (error: any) {
+    console.error("Erro ao deletar funcionário:", error);
+    res.status(500).json({ 
+      error: "Failed to delete funcionario",
+      details: error?.message || String(error)
+    });
+  }
+});
+
+// ===== AGENDAMENTOS =====
+app.get("/api/agendamentos", async (req, res) => {
+  try {
+    const agendamentos = await prisma.agendamento.findMany({
+      include: {
+        funcionario: true,
+        itemVenda: {
+          include: {
+            produto: true,
+            pet: { include: { cliente: true } },
+          },
+        },
+      },
+      orderBy: { dataHora: "asc" },
+    });
+    res.json(agendamentos);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch agendamentos" });
+  }
+});
+
+app.get("/api/agendamentos/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const agendamento = await prisma.agendamento.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        funcionario: true,
+        itemVenda: {
+          include: {
+            produto: true,
+            pet: { include: { cliente: true } },
+          },
+        },
+      },
+    });
+    if (!agendamento) {
+      return res.status(404).json({ error: "Agendamento não encontrado" });
+    }
+    res.json(agendamento);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch agendamento" });
+  }
+});
+
+app.get("/api/agendamentos/funcionario/:funcionarioId/data/:data", async (req, res) => {
+  try {
+    const { funcionarioId, data } = req.params;
+    const dataInicio = new Date(data);
+    dataInicio.setHours(0, 0, 0, 0);
+    const dataFim = new Date(data);
+    dataFim.setHours(23, 59, 59, 999);
+
+    const agendamentos = await prisma.agendamento.findMany({
+      where: {
+        funcionarioId: parseInt(funcionarioId),
+        dataHora: {
+          gte: dataInicio,
+          lte: dataFim,
+        },
+        status: { not: "CANCELADO" },
+      },
+      include: {
+        funcionario: true,
+        itemVenda: {
+          include: {
+            produto: true,
+            pet: { include: { cliente: true } },
+          },
+        },
+      },
+      orderBy: { dataHora: "asc" },
+    });
+    res.json(agendamentos);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch agendamentos" });
+  }
+});
+
+app.post("/api/agendamentos/verificar-disponibilidade", async (req, res) => {
+  try {
+    const { funcionarioId, dataHora, duracao } = req.body;
+
+    if (!funcionarioId || !dataHora || !duracao) {
+      return res.status(400).json({ error: "funcionarioId, dataHora e duracao são obrigatórios" });
+    }
+
+    const dataInicio = new Date(dataHora);
+    const dataFim = new Date(dataInicio);
+    dataFim.setMinutes(dataFim.getMinutes() + duracao);
+
+    const agendamentosConflitantes = await prisma.agendamento.findMany({
+      where: {
+        funcionarioId: parseInt(funcionarioId),
+        status: { not: "CANCELADO" },
+        dataHora: {
+          lt: dataFim,
+        },
+      },
+      select: { dataHora: true, duracao: true },
+    });
+
+    let disponivel = true;
+    for (const ag of agendamentosConflitantes) {
+      const agFim = new Date(ag.dataHora);
+      agFim.setMinutes(agFim.getMinutes() + ag.duracao);
+      
+      if (dataInicio < agFim) {
+        disponivel = false;
+        break;
+      }
+    }
+
+    res.json({ disponivel });
+  } catch (error: any) {
+    console.error("Erro ao verificar disponibilidade:", error);
+    res.status(500).json({ 
+      error: "Failed to verify availability",
+      details: error?.message || String(error)
+    });
+  }
+});
+
+app.post("/api/agendamentos", async (req, res) => {
+  try {
+    const { funcionarioId, dataHora, duracao, itemVendaId } = req.body;
+
+    if (!funcionarioId || !dataHora || !duracao || !itemVendaId) {
+      return res.status(400).json({ error: "funcionarioId, dataHora, duracao e itemVendaId são obrigatórios" });
+    }
+
+    const dataInicio = new Date(dataHora);
+    const dataFim = new Date(dataInicio);
+    dataFim.setMinutes(dataFim.getMinutes() + duracao);
+
+    // Verificar disponibilidade
+    const agendamentosConflitantes = await prisma.agendamento.findMany({
+      where: {
+        funcionarioId: parseInt(funcionarioId),
+        status: { not: "CANCELADO" },
+        dataHora: {
+          lt: dataFim,
+        },
+      },
+      select: { dataHora: true, duracao: true },
+    });
+
+    for (const ag of agendamentosConflitantes) {
+      const agFim = new Date(ag.dataHora);
+      agFim.setMinutes(agFim.getMinutes() + ag.duracao);
+      
+      if (dataInicio < agFim) {
+        return res.status(400).json({ error: "Funcionário não está disponível neste horário" });
+      }
+    }
+
+    const agendamento = await prisma.agendamento.create({
+      data: {
+        funcionarioId: parseInt(funcionarioId),
+        dataHora: dataInicio,
+        duracao: parseInt(duracao),
+        itemVendaId: parseInt(itemVendaId),
+      },
+      include: {
+        funcionario: true,
+        itemVenda: {
+          include: {
+            produto: true,
+            pet: { include: { cliente: true } },
+          },
+        },
+      },
+    });
+    res.status(201).json(agendamento);
+  } catch (error: any) {
+    console.error("Erro ao criar agendamento:", error);
+    res.status(500).json({ 
+      error: "Failed to create agendamento",
+      details: error?.message || String(error)
+    });
+  }
+});
+
+app.patch("/api/agendamentos/:id/status", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!status || !["PENDENTE", "CONFIRMADO", "REALIZADO", "CANCELADO"].includes(status)) {
+      return res.status(400).json({ error: "Status inválido" });
+    }
+
+    const agendamento = await prisma.agendamento.update({
+      where: { id: parseInt(id) },
+      data: { status },
+      include: {
+        funcionario: true,
+        itemVenda: {
+          include: {
+            produto: true,
+            pet: { include: { cliente: true } },
+          },
+        },
+      },
+    });
+    res.json(agendamento);
+  } catch (error: any) {
+    console.error("Erro ao atualizar agendamento:", error);
+    res.status(500).json({ 
+      error: "Failed to update agendamento",
+      details: error?.message || String(error)
+    });
+  }
+});
+
+// ===== RELATÓRIOS DE AGENDA =====
+app.get("/api/relatorios/agenda", async (req, res) => {
+  try {
+    const { dataInicio, dataFim } = req.query;
+
+    if (!dataInicio || !dataFim) {
+      return res.status(400).json({ error: "dataInicio e dataFim são obrigatórios" });
+    }
+
+    const inicio = new Date(dataInicio as string);
+    const fim = new Date(dataFim as string);
+
+    const relatorio = new RelatorioAgenda();
+    const dados = await relatorio.gerarPorPeriodo(inicio, fim);
+
+    res.json(dados);
+  } catch (error: any) {
+    console.error("Erro ao gerar relatório de agenda:", error);
+    res.status(500).json({ 
+      error: "Failed to generate agenda report",
+      details: error?.message || String(error)
+    });
+  }
+});
+
+app.get("/api/relatorios/agenda/funcionario/:funcionarioId", async (req, res) => {
+  try {
+    const { funcionarioId } = req.params;
+    const { dataInicio, dataFim } = req.query;
+
+    if (!dataInicio || !dataFim) {
+      return res.status(400).json({ error: "dataInicio e dataFim são obrigatórios" });
+    }
+
+    const inicio = new Date(dataInicio as string);
+    const fim = new Date(dataFim as string);
+
+    const relatorio = new RelatorioAgenda();
+    const dados = await relatorio.gerarPorFuncionario(
+      parseInt(funcionarioId),
+      inicio,
+      fim
+    );
+
+    res.json(dados);
+  } catch (error: any) {
+    console.error("Erro ao gerar relatório de agenda por funcionário:", error);
+    res.status(500).json({ 
+      error: "Failed to generate employee agenda report",
+      details: error?.message || String(error)
+    });
+  }
+});
+
+app.get("/api/relatorios/agenda/data/:data", async (req, res) => {
+  try {
+    const { data } = req.params;
+
+    const dataRelatorio = new Date(data);
+    const relatorio = new RelatorioAgenda();
+    const dados = await relatorio.gerarPorData(dataRelatorio);
+
+    res.json(dados);
+  } catch (error: any) {
+    console.error("Erro ao gerar relatório de agenda por data:", error);
+    res.status(500).json({ 
+      error: "Failed to generate daily agenda report",
+      details: error?.message || String(error)
+    });
+  }
+});
+
+app.get("/api/relatorios/agenda/texto", async (req, res) => {
+  try {
+    const { dataInicio, dataFim } = req.query;
+
+    if (!dataInicio || !dataFim) {
+      return res.status(400).json({ error: "dataInicio e dataFim são obrigatórios" });
+    }
+
+    const inicio = new Date(dataInicio as string);
+    const fim = new Date(dataFim as string);
+
+    const relatorio = new RelatorioAgenda();
+    const texto = await relatorio.gerarTexto(inicio, fim);
+
+    res.set("Content-Type", "text/plain; charset=utf-8");
+    res.send(texto);
+  } catch (error: any) {
+    console.error("Erro ao gerar relatório de agenda em texto:", error);
+    res.status(500).json({ 
+      error: "Failed to generate text agenda report",
+      details: error?.message || String(error)
+    });
   }
 });
 

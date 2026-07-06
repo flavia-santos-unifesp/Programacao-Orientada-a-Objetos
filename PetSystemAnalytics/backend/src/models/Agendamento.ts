@@ -9,7 +9,8 @@ export class Agendamento {
         private duracao: number,
         private status: StatusAgendamento,
         private funcionario: Funcionario,
-        private itemVenda: ItemVenda
+        private itemVenda: ItemVenda,
+        private itemVendaId?: number
     ) {
         if (!dataHora) {
             throw new Error("Data e hora do agendamento são obrigatórios.");
@@ -50,6 +51,10 @@ export class Agendamento {
 
     public getItemVenda(): ItemVenda {
         return this.itemVenda;
+    }
+
+    public getItemVendaId(): number | undefined {
+        return this.itemVendaId;
     }
 
     public getDataHoraFim(): Date {

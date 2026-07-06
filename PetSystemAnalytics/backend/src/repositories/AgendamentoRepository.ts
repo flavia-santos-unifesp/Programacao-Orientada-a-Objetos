@@ -127,9 +127,10 @@ export class AgendamentoRepository implements IRepository<Agendamento, CreateAge
             agendamento.id,
             new Date(agendamento.dataHora),
             agendamento.duracao,
-            statusMap[agendamento.status],
+            statusMap[agendamento.status] || StatusAgendamento.PENDENTE,
             funcionario,
-            itemVenda
+            itemVenda,
+            agendamento.itemVendaId
         );
 
     }

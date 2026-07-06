@@ -33,7 +33,7 @@ export class AgendamentoMapper {
             duracao: agendamento.getDuracao(),
             status: agendamento.getStatus() as PrismaStatusAgendamento,
             funcionarioId: agendamento.getFuncionario().getId(),
-            itemVendaId: agendamento.getItemVenda().getId()
+            itemVendaId: agendamento.getItemVendaId() || 0
         };
 
     }

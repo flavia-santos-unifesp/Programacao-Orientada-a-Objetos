@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { fetchAPI } from '../services/api';
 
 interface CreateFuncionarioDTO {
   nome: string;
@@ -20,6 +21,7 @@ export function FuncionarioForm({ onSubmit }: FuncionarioFormProps) {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -32,21 +34,35 @@ export function FuncionarioForm({ onSubmit }: FuncionarioFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
 
     if (!formData.nome || !formData.email || !formData.telefone || !formData.cargo) {
       setError('Todos os campos são obrigatórios.');
       return;
     }
 
+    // Validar email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Email inválido.');
+      return;
+    }
+
     try {
       setLoading(true);
-      await onSubmit(formData);
+      await fetchAPI('/funcionarios', {
+        method: 'POST',
+        body: JSON.stringify(formData),
+      });
+      setSuccess('Funcionário cadastrado com sucesso!');
       setFormData({
         nome: '',
         telefone: '',
         email: '',
         cargo: '',
       });
+      // Chamar callback opcional
+      await onSubmit(formData);
     } catch (err: any) {
       setError(err.message || 'Erro ao criar funcionário.');
     } finally {
@@ -91,7 +107,13 @@ export function FuncionarioForm({ onSubmit }: FuncionarioFormProps) {
 
       {error && (
         <div style={{ background: '#f8d7da', color: '#721c24', padding: '1rem', borderRadius: '4px', marginBottom: '1rem' }}>
-          {error}
+          ❌ {error}
+        </div>
+      )}
+
+      {success && (
+        <div style={{ background: '#d4edda', color: '#155724', padding: '1rem', borderRadius: '4px', marginBottom: '1rem' }}>
+          ✓ {success}
         </div>
       )}
 

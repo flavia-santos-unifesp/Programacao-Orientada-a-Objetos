@@ -1,17 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { fetchAPI } from '../services/api';
 
 interface Funcionario {
   id: number;
   nome: string;
   cargo: string;
-}
-
-interface Agendamento {
-  id: number;
-  dataHora: string;
-  duracao: number;
-  status: string;
-  funcionario: Funcionario;
 }
 
 interface AgendamentoFormProps {
@@ -22,7 +15,6 @@ interface AgendamentoFormProps {
 
 export function AgendamentoForm({ itemVendaId, onSubmit, onCancel }: AgendamentoFormProps) {
   const [funcionarios, setFuncionarios] = useState<Funcionario[]>([]);
-  const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
   const [formData, setFormData] = useState({
     funcionarioId: '',
     dataHora: '',
@@ -38,10 +30,11 @@ export function AgendamentoForm({ itemVendaId, onSubmit, onCancel }: Agendamento
 
   const carregarFuncionarios = async () => {
     try {
-      // TODO: Implementar chamada à API
-      console.log('Carregando funcionários...');
+      const data = await fetchAPI<Funcionario[]>('/funcionarios');
+      setFuncionarios(data);
     } catch (error) {
       console.error('Erro ao carregar funcionários:', error);
+      setError('Erro ao carregar funcionários.');
     }
   };
 
@@ -52,12 +45,28 @@ export function AgendamentoForm({ itemVendaId, onSubmit, onCancel }: Agendamento
     }
 
     try {
-      // TODO: Implementar chamada à API para verificar disponibilidade
-      setDisponibilidade(true);
-      setError('');
+      setLoading(true);
+      const response = await fetchAPI<{ disponivel: boolean }>('/agendamentos/verificar-disponibilidade', {
+        method: 'POST',
+        body: JSON.stringify({
+          funcionarioId: parseInt(formData.funcionarioId),
+          dataHora: new Date(formData.dataHora),
+          duracao: formData.duracao,
+        }),
+      });
+      
+      if (response.disponivel) {
+        setDisponibilidade(true);
+        setError('');
+      } else {
+        setDisponibilidade(false);
+        setError('Funcionário não disponível neste horário.');
+      }
     } catch (err: any) {
       setDisponibilidade(false);
-      setError('Funcionário não disponível neste horário.');
+      setError(err.message || 'Erro ao verificar disponibilidade.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -72,6 +81,7 @@ export function AgendamentoForm({ itemVendaId, onSubmit, onCancel }: Agendamento
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
 
     if (disponibilidade !== true) {
       setError('Verifique a disponibilidade antes de agendar.');
@@ -80,12 +90,17 @@ export function AgendamentoForm({ itemVendaId, onSubmit, onCancel }: Agendamento
 
     try {
       setLoading(true);
-      await onSubmit({
-        funcionarioId: parseInt(formData.funcionarioId),
-        dataHora: new Date(formData.dataHora),
-        duracao: formData.duracao,
-        itemVendaId,
+      const novoAgendamento = await fetchAPI('/agendamentos', {
+        method: 'POST',
+        body: JSON.stringify({
+          funcionarioId: parseInt(formData.funcionarioId),
+          dataHora: new Date(formData.dataHora),
+          duracao: formData.duracao,
+          itemVendaId,
+        }),
       });
+      
+      await onSubmit(novoAgendamento);
     } catch (err: any) {
       setError(err.message || 'Erro ao criar agendamento.');
     } finally {

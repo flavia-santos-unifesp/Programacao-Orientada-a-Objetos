@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { fetchAPI } from '../services/api';
 
 interface Funcionario {
   id: number;
@@ -11,6 +12,7 @@ interface Funcionario {
 export function FuncionarioList() {
   const [funcionarios, setFuncionarios] = useState<Funcionario[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     carregarFuncionarios();
@@ -19,10 +21,12 @@ export function FuncionarioList() {
   const carregarFuncionarios = async () => {
     try {
       setLoading(true);
-      // TODO: Implementar chamada à API
-      console.log('Carregando funcionários...');
-    } catch (error) {
-      console.error('Erro ao carregar funcionários:', error);
+      setError('');
+      const data = await fetchAPI<Funcionario[]>('/funcionarios');
+      setFuncionarios(data);
+    } catch (err: any) {
+      setError(err.message || 'Erro ao carregar funcionários');
+      console.error('Erro:', err);
     } finally {
       setLoading(false);
     }
@@ -31,10 +35,11 @@ export function FuncionarioList() {
   const handleDelete = async (id: number) => {
     if (window.confirm('Tem certeza que deseja excluir este funcionário?')) {
       try {
-        // TODO: Implementar chamada à API de delete
+        await fetchAPI(`/funcionarios/${id}`, { method: 'DELETE' });
         setFuncionarios(funcionarios.filter(f => f.id !== id));
-      } catch (error) {
-        console.error('Erro ao deletar funcionário:', error);
+      } catch (err: any) {
+        setError(err.message || 'Erro ao deletar funcionário');
+        console.error('Erro:', err);
       }
     }
   };
@@ -66,6 +71,14 @@ export function FuncionarioList() {
 
   if (loading) {
     return <div style={{ color: 'var(--text)' }}>Carregando funcionários...</div>;
+  }
+
+  if (error) {
+    return (
+      <div style={{ color: '#dc3545', padding: '1rem', background: '#f8d7da', borderRadius: '4px' }}>
+        ❌ {error}
+      </div>
+    );
   }
 
   return (
