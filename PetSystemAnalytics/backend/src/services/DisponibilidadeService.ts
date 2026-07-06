@@ -125,29 +125,59 @@ export class DisponibilidadeService {
   async sugerirProximosHorarios(
     tipoServico: TipoServico,
     duracao: number,
-    quantidade: number = 5
+    quantidade: number = 30,
+    dataEspecifica?: Date
   ): Promise<Date[]> {
     const horarios: Date[] = [];
-    let dataHora = HorarioComercialValidator.proximaDataComercial();
+    let dataHora: Date;
+    const dataOriginal = dataEspecifica ? new Date(dataEspecifica) : null;
+
+    // Se uma data específica foi fornecida, começar nela às 8h
+    if (dataEspecifica) {
+      dataHora = new Date(dataEspecifica);
+      dataHora.setHours(8, 0, 0, 0);
+      
+      // Se a data é feriado ou fim de semana, retornar vazio
+      const dia = dataHora.getDay();
+      if (dia === 0 || dia === 6) { // Domingo ou sábado
+        return [];
+      }
+    } else {
+      dataHora = HorarioComercialValidator.proximaDataComercial();
+    }
 
     while (horarios.length < quantidade) {
-      // Incrementa de 30 em 30 minutos
-      dataHora.setMinutes(dataHora.getMinutes() + 30);
+      // Se foi fornecida uma data específica, verificar se ainda estamos nela
+      if (dataOriginal) {
+        const diaAtual = new Date(dataHora);
+        diaAtual.setHours(0, 0, 0, 0);
+        const diaOriginal = new Date(dataOriginal);
+        diaOriginal.setHours(0, 0, 0, 0);
+        
+        // Se mudou de dia, parar
+        if (diaAtual.getTime() !== diaOriginal.getTime()) {
+          break;
+        }
+        
+        // Se passou das 17h, parar
+        if (dataHora.getHours() >= 17) {
+          break;
+        }
+      } else {
+        // Sem data específica: continuar para próximo dia
+        if (dataHora.getHours() >= 17) {
+          dataHora.setDate(dataHora.getDate() + 1);
+          dataHora.setHours(8, 0, 0, 0);
+          continue;
+        }
 
-      // Se passou das 17h, vai para o próximo dia
-      if (dataHora.getHours() >= 17) {
-        dataHora.setDate(dataHora.getDate() + 1);
-        dataHora.setHours(8, 0, 0, 0);
-        continue;
-      }
-
-      // Se está em fim de semana, vai para segunda-feira
-      if (dataHora.getDay() === 0 || dataHora.getDay() === 6) {
-        const diasAoLunedi =
-          dataHora.getDay() === 0 ? 1 : 2;
-        dataHora.setDate(dataHora.getDate() + diasAoLunedi);
-        dataHora.setHours(8, 0, 0, 0);
-        continue;
+        // Se está em fim de semana, ir para segunda
+        if (dataHora.getDay() === 0 || dataHora.getDay() === 6) {
+          const diasAoLunedi = dataHora.getDay() === 0 ? 1 : 2;
+          dataHora.setDate(dataHora.getDate() + diasAoLunedi);
+          dataHora.setHours(8, 0, 0, 0);
+          continue;
+        }
       }
 
       // Verifica se há algum funcionário disponível
@@ -160,6 +190,9 @@ export class DisponibilidadeService {
       if (disponíveis.length > 0) {
         horarios.push(new Date(dataHora));
       }
+
+      // Incrementar de 15 em 15 minutos
+      dataHora.setMinutes(dataHora.getMinutes() + 15);
     }
 
     return horarios;

@@ -737,7 +737,7 @@ app.get("/api/agendamentos/disponibilidade/:tipoServico", async (req, res) => {
 app.get("/api/agendamentos/sugerir-horarios/:tipoServico", async (req, res) => {
   try {
     const { tipoServico } = req.params;
-    const { duracao, quantidade } = req.query;
+    const { duracao, quantidade, data } = req.query;
 
     if (!duracao) {
       return res.status(400).json({ 
@@ -747,15 +747,17 @@ app.get("/api/agendamentos/sugerir-horarios/:tipoServico", async (req, res) => {
 
     const disponibilidadeService = new DisponibilidadeService();
     const durationMinutes = parseInt(duracao as string);
-    const qtd = quantidade ? parseInt(quantidade as string) : 5;
+    const qtd = quantidade ? parseInt(quantidade as string) : 30; // Retornar mais horários para dia inteiro
+    const dataEspecifica = data ? new Date(data as string) : undefined;
 
     const horarios = await disponibilidadeService.sugerirProximosHorarios(
       tipoServico as any,
       durationMinutes,
-      qtd
+      qtd,
+      dataEspecifica
     );
 
-    res.json({ horarios });
+    res.json(horarios);
   } catch (error: any) {
     console.error("Erro ao sugerir horários:", error);
     res.status(500).json({ 
