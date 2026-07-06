@@ -10,6 +10,11 @@ const SERVICOS_INFO: Record<TipoServico, { nome: string; precoBase: number; dura
   HOSPEDAGEM: { nome: "Hospedagem", precoBase: 100, duracao: 1440 },
 };
 
+interface PrecoServicoResponse {
+  preco: number;
+  duracao: number;
+}
+
 interface ItemAgendado {
   servico: TipoServico;
   petId: number;
@@ -29,6 +34,8 @@ export function ComprarServico() {
   const [tipoServicoSelecionado, setTipoServicoSelecionado] = useState<TipoServico | null>(null);
   const [petSelecionado, setPetSelecionado] = useState<string>("");
   const [showModal, setShowModal] = useState(false);
+  const [servicosCalculados, setServicosCalculados] = useState(SERVICOS_INFO);
+  const [carregandoPrecos, setCarregandoPrecos] = useState(false);
 
   const [itensAgendados, setItensAgendados] = useState<ItemAgendado[]>([]);
   const [loading, setLoading] = useState(false);
@@ -54,6 +61,58 @@ export function ComprarServico() {
     }
   }, [clienteId]);
 
+  useEffect(() => {
+    const carregarPrecosServicos = async () => {
+      if (!petSelecionado) {
+        setServicosCalculados(SERVICOS_INFO);
+        return;
+      }
+
+      try {
+        setCarregandoPrecos(true);
+
+        const tipos = ["BANHO", "TOSA", "CONSULTA", "HOSPEDAGEM"] as TipoServico[];
+        const respostas = await Promise.all(
+          tipos.map(async (tipo) => {
+            const dados = await fetchAPI<PrecoServicoResponse>(
+              `/servicos/preco/${petSelecionado}/${tipo}`
+            );
+
+            return {
+              tipo,
+              preco: dados.preco,
+              duracao: dados.duracao,
+            };
+          })
+        );
+
+        const calculado: Record<TipoServico, { nome: string; precoBase: number; duracao: number }> = {
+          BANHO: { ...SERVICOS_INFO.BANHO },
+          TOSA: { ...SERVICOS_INFO.TOSA },
+          CONSULTA: { ...SERVICOS_INFO.CONSULTA },
+          HOSPEDAGEM: { ...SERVICOS_INFO.HOSPEDAGEM },
+        };
+
+        for (const item of respostas) {
+          calculado[item.tipo] = {
+            ...calculado[item.tipo],
+            precoBase: item.preco,
+            duracao: item.duracao,
+          };
+        }
+
+        setServicosCalculados(calculado);
+      } catch (error) {
+        console.error("Erro ao calcular preços dos serviços:", error);
+        setServicosCalculados(SERVICOS_INFO);
+      } finally {
+        setCarregandoPrecos(false);
+      }
+    };
+
+    carregarPrecosServicos();
+  }, [petSelecionado]);
+
   const handleAdicionarServico = (tipoServico: TipoServico) => {
     setTipoServicoSelecionado(tipoServico);
     setShowModal(true);
@@ -77,7 +136,7 @@ export function ComprarServico() {
       return;
       }
 
-      const info = SERVICOS_INFO[tipoServicoSelecionado];
+      const info = servicosCalculados[tipoServicoSelecionado];
 
       // Buscar nome do funcionário
       const funcionarios = await fetchAPI<any[]>("/funcionarios");
@@ -119,11 +178,14 @@ export function ComprarServico() {
         body: JSON.stringify({
           clienteId: parseInt(clienteId),
           itens: itensAgendados.map((item) => ({
+            tipo: "SERVICO",
             servico: item.servico,
             petId: item.petId,
             quantidade: 1,
+            precoUnitario: item.preco,
             dataHora: new Date(item.dataHora).toISOString(),
             funcionarioId: item.funcionarioId,
+            duracao: item.duracao,
           })),
         }),
       });
@@ -236,7 +298,7 @@ export function ComprarServico() {
           }}
         >
           {(["BANHO", "TOSA", "CONSULTA", "HOSPEDAGEM"] as TipoServico[]).map((tipo) => {
-            const info = SERVICOS_INFO[tipo];
+            const info = servicosCalculados[tipo];
             return (
               <button
                 key={tipo}
@@ -255,7 +317,9 @@ export function ComprarServico() {
               >
                 <div>{info.nome}</div>
                 <div style={{ fontSize: "0.85rem", opacity: 0.9 }}>
-                  R$ {info.precoBase.toFixed(2)}
+                  {carregandoPrecos && petSelecionado
+                    ? "Calculando..."
+                    : `R$ ${info.precoBase.toFixed(2)}`}
                 </div>
                 <div style={{ fontSize: "0.8rem", opacity: 0.7, marginTop: "0.25rem" }}>
                   ⏱️ {Math.floor(info.duracao / 60)}h {info.duracao % 60}m
@@ -294,7 +358,7 @@ export function ComprarServico() {
               >
                 <div>
                   <div style={{ color: "white", fontWeight: "600" }}>
-                    {SERVICOS_INFO[item.servico].nome} - {item.petNome}
+                    {servicosCalculados[item.servico].nome} - {item.petNome}
                   </div>
                   <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
                     👤 {item.funcionarioNome} | 📅{" "}
@@ -367,7 +431,7 @@ export function ComprarServico() {
       {showModal && tipoServicoSelecionado && (
         <ServicoAgendamentoModal
           tipoServico={tipoServicoSelecionado}
-          duracao={SERVICOS_INFO[tipoServicoSelecionado].duracao}
+          duracao={servicosCalculados[tipoServicoSelecionado].duracao}
           petSelecionado={Boolean(petSelecionado)}
           onConfirm={handleConfirmarAgendamento}
           onCancel={() => {
