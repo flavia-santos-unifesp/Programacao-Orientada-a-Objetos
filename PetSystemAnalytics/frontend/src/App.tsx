@@ -12,6 +12,7 @@ import { Agenda } from "./pages/Agenda";
 import { ComprarServico } from "./pages/ComprarServico";
 import type { KPIResponse } from "./types";
 import "./App.css";
+import logo from "./assets/logo.png";
 
 type Page = "dashboard" | "clientes" | "produtos" | "servicos" | "pets" | "vendas" | "funcionarios" | "agenda" | "comprar-servico" | "projeto" | "equipe";
 
@@ -31,62 +32,90 @@ export default function App() {
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       {/* Header */}
-      <header style={{
+      {/* <header style={{
         background: "var(--accent)",
         color: "white",
         padding: "2rem",
         boxShadow: "var(--shadow)"
       }}>
         <h1 style={{ margin: 0, fontSize: "2rem" }}>Pet System Analytics</h1>
-      </header>
+      </header> */}
 
       {/* Main Container */}
       <div style={{ display: "flex", flex: 1 }}>
         {/* Sidebar */}
-        <nav style={{
-          width: "250px",
+      <nav
+        style={{
+          width: "300px",
           background: "var(--bg)",
           borderRight: "1px solid var(--border)",
           padding: "1rem",
           boxShadow: "var(--shadow)"
-        }}>
-          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-            {[
-              { id: "dashboard", label: "Dashboard" },
-              { id: "clientes", label: "Clientes" },
-              { id: "pets", label: "Pets" },
-              { id: "produtos", label: "Produtos" },
-              { id: "servicos", label: "Serviços" },
-              { id: "vendas", label: "Vendas" },
-              { id: "comprar-servico", label: "Agendar Serviço" },
-              { id: "funcionarios", label: "Funcionários" },
-              { id: "agenda", label: "Agenda" },
-              { id: "projeto", label: "Projeto" },
-              { id: "equipe", label: "Equipe" }
-            ].map((item) => (
-              <li key={item.id} style={{ marginBottom: "0.5rem" }}>
-                <button
-                   onClick={() => setCurrentPage(item.id as Page)}
-                   style={{
-                     width: "100%",
-                     textAlign: "left",
-                     padding: "0.75rem",
-                     border: "none",
-                     borderRadius: "4px",
-                     background: currentPage === item.id ? "var(--accent)" : "transparent",
-                     color: currentPage === item.id ? "white" : "var(--text)",
-                     cursor: "pointer",
-                     fontFamily: "var(--sans)",
-                     fontSize: "1rem",
-                     transition: "all 0.2s"
-                   }}
-                >
-                  {item.label}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginBottom: "1.5rem"
+          }}
+        >
+          <img
+            src={logo}
+            alt="Pet System Analytics"
+            style={{
+              width: "180px",
+              height: "auto"
+            }}
+          />
+        </div>
+
+        <hr
+          style={{
+            border: "none",
+            borderTop: "1px solid var(--border)",
+            marginBottom: "1.5rem"
+          }}
+        />
+
+        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          {[
+            { id: "dashboard", label: "Dashboard" },
+            { id: "clientes", label: "Clientes" },
+            { id: "pets", label: "Pets" },
+            { id: "produtos", label: "Produtos" },
+            { id: "servicos", label: "Serviços" },
+            { id: "vendas", label: "Vendas" },
+            { id: "comprar-servico", label: "Agendar Serviço" },
+            { id: "funcionarios", label: "Funcionários" },
+            { id: "agenda", label: "Agenda" },
+            { id: "projeto", label: "Projeto" },
+            { id: "equipe", label: "Equipe" }
+          ].map((item) => (
+            <li key={item.id} style={{ marginBottom: "0.5rem" }}>
+              <button
+                onClick={() => setCurrentPage(item.id as Page)}
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  padding: "0.8rem",
+                  border: "none",
+                  borderRadius: "4px",
+                  background:
+                    currentPage === item.id ? "var(--accent)" : "transparent",
+                  color: currentPage === item.id ? "white" : "var(--text)",
+                  cursor: "pointer",
+                  fontFamily: "var(--sans)",
+                  fontSize: "1rem",
+                  transition: "all 0.2s"
+                }}
+              >
+                {item.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </nav>
 
         {/* Main Content */}
         <main style={{

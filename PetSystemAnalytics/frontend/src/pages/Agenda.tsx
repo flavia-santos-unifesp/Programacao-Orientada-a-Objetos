@@ -37,7 +37,7 @@ const HORA_INICIO = 8;
 const HORA_FIM = 17;
 const SLOT_MINUTOS = 15;
 const PIXELS_POR_HORA = 64;
-const HEADER_HEIGHT = 38;
+const HEADER_HEIGHT = 40;
 const WORK_MINUTES = (HORA_FIM - HORA_INICIO) * 60;
 
 const diasSemanaPt = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
@@ -182,7 +182,7 @@ export function Agenda() {
 
 
   const gridHeight = (HORA_FIM - HORA_INICIO) * PIXELS_POR_HORA;
-  const totalHeight = gridHeight + HEADER_HEIGHT;
+  const totalHeight = gridHeight + HEADER_HEIGHT; // inclui faixa até 17h
 
   const headerStyle: React.CSSProperties = {
     display: "flex",
@@ -295,7 +295,7 @@ export function Agenda() {
                 <div style={{ borderRight: "1px solid var(--border)", position: "relative", background: "var(--code-bg)",height: totalHeight }}>
                   {Array.from({ length: HORA_FIM - HORA_INICIO + 1 }).map((_, i) => {
                     const hour = HORA_INICIO + i;
-                    const top = HEADER_HEIGHT + (i * PIXELS_POR_HORA);
+                    const top = HEADER_HEIGHT + (i * PIXELS_POR_HORA) + (PIXELS_POR_HORA / 2);
                     return (
                       <div
                         key={hour}
@@ -304,11 +304,10 @@ export function Agenda() {
                           top,
                           left: 0,
                           right: 0,
-                        //   transform: "translateY(-50%)",
+                          transform: "translateY(-50%)",
                           fontSize: "0.8rem",
                           color: "var(--text-muted)",
                           textAlign: "center",
-                        //   paddingTop: 90,
                         }}
                       >
                         {String(hour).padStart(2, "0")}:00
@@ -340,11 +339,7 @@ export function Agenda() {
                           />
                         ))}
 
-                        {dayEvents.length === 0 && (
-                          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", fontSize: "0.8rem" }}>
-                            Disponível
-                          </div>
-                        )}
+                        
 
                         {dayEvents.map((ev) => {
                           const inicio = new Date(ev.dataHora);
