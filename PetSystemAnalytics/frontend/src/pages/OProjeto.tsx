@@ -44,9 +44,9 @@ export function OProjeto() {
 
       {/* Sobre */}
       <div style={sectionStyle}>
-        <h2 style={titleStyle}>Sobre o PetSystemAnalytics</h2>
+        <h2 style={titleStyle}>Sobre o Pet System Analytics</h2>
         <p style={textStyle}>
-          O <strong>PetSystemAnalytics</strong> é um sistema de gestão completo para pet shops e clínicas veterinárias. 
+          O <strong>Pet System Analytics</strong> é um sistema de gestão para pet shops e clínicas veterinárias. 
           Desenvolvido como projeto acadêmico para a disciplina de Programação Orientada a Objetos, 
           ele demonstra a aplicação de conceitos fundamentais da POO em uma aplicação real e prática.
         </p>
@@ -73,7 +73,8 @@ export function OProjeto() {
           <li>Venda e Agendamento de Serviços (Banho, Tosa, Consulta e Hospedagem) na tela Agendar Serviço</li>
           <li>Validação de horário comercial e disponibilidade de funcionário no agendamento</li>
           <li>Agenda semanal em formato calendário por funcionário</li>
-          <li>Dashboard com KPIs e análises em tempo real</li>
+          <li>Dashboard com KPIs atualizados automaticamente</li>
+          <li>Persistência de dados em PostgreSQL utilizando Prisma ORM</li>
         </ul>
       </div>
 
@@ -93,9 +94,8 @@ export function OProjeto() {
         <div style={featureItemStyle}>
           <h3 style={{ color: "var(--accent)", margin: "0 0 0.5rem 0" }}>Polimorfismo</h3>
           <p style={{ margin: 0, color: "var(--text)" }}>
-            O domínio de serviços reutiliza contratos comuns para representar Banho, Tosa,
-            Consulta e Hospedagem, aplicando regras específicas por tipo de serviço e
-            características do pet (como peso e porte) sem alterar o fluxo principal da aplicação.
+            As subclasses de Servico implementam comportamentos específicos para Banho, Tosa, Consulta e
+            Hospedagem, permitindo tratar todos os serviços de forma uniforme.
           </p>
         </div>
 
@@ -119,11 +119,8 @@ export function OProjeto() {
         <div style={featureItemStyle}>
           <h3 style={{ color: "var(--accent)", margin: "0 0 0.5rem 0" }}>Interfaces</h3>
           <p style={{ margin: 0, color: "var(--text)" }}>
-            A interface genérica <code>IRepository&lt;TDomain, TCreateInput&gt;</code> define o
-            contrato de acesso a dados (create, findAll, findById) implementado por
-            <code> ClienteRepository</code>, <code>PetRepository</code>, <code>ProdutoRepository</code> e{" "}
-            <code>VendaRepository</code>, além de outros repositórios de agenda — múltiplas
-            implementações para o mesmo contrato.
+            A interface <code>IRepository&lt;TDomain, TCreateInput&gt;</code> define o
+            contrato de acesso a dados implementado pelos diferentes repositórios do sistema.
           </p>
         </div>
 
@@ -161,7 +158,7 @@ export function OProjeto() {
           <li><strong>Services:</strong> Orquestração de regras de negócio</li>
           <li><strong>DTOs:</strong> Transferência segura de dados entre camadas</li>
           <li><strong>Mappers:</strong> Conversão entre modelos de diferentes camadas</li>
-          <li><strong>API:</strong> Backend em Express + TypeScript com endpoints REST</li>
+          <li><strong>Backend:</strong> API REST desenvolvida em Express + TypeScript</li>
           <li><strong>Frontend:</strong> Interface intuitiva em React + TypeScript</li>
         </ul>
       </div>
@@ -174,7 +171,7 @@ export function OProjeto() {
           gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
           gap: "1rem"
         }}>
-          {["TypeScript", "Node.js", "Express", "React", "Prisma", "PostgreSQL"].map((tech) => (
+          {["React","TypeScript", "Node.js", "Express",  "Prisma", "PostgreSQL", "Neon", "Railway"].map((tech) => (
             <div
               key={tech}
               style={{

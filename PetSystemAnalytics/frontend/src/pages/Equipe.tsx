@@ -2,32 +2,33 @@ export function Equipe() {
   const teamMembers = [
     {
       id: 1,
-      nome: "Nome do Membro 1",
-      funcao: "Full Stack Developer",
+      nome: "Andrey Prado",
+      funcao: "Developer",
+      github: "https://github.com/AndreyPradoAP",
       contribuicoes: [
-        "Arquitetura do Backend",
-        "Modelos e Lógica de Negócio",
-        "API REST",
+        "",
       ]
     },
     {
       id: 2,
-      nome: "Nome do Membro 2",
-      funcao: "Backend Developer",
+      nome: "Flavia Santos",
+      funcao: "Backend & Banco & Frontend",
+      github: "https://github.com/flavia-santos-unifesp",
       contribuicoes: [
-        "Banco de Dados (Prisma)",
-        "Repositories e Services",
-        "Validações",
+        "API REST",
+        "Banco de Dados",
+        "Frontend",
       ]
     },
     {
       id: 3,
-      nome: "Nome do Membro 3",
-      funcao: "Frontend Developer",
+      nome: "Rennan Britto",
+      funcao: "Arquitertura & Backend",
+      github: "https://github.com/rennanbritto",
       contribuicoes: [
-        "Interface de Usuário",
-        "Componentes React",
-        "Integração com API",
+        "Arquitertura do Sistema",
+        "Modelagem do domínio",
+        "Backend",
       ]
     },
   ];
@@ -39,6 +40,18 @@ export function Equipe() {
     border: "1px solid var(--border)",
     marginBottom: "2rem",
     boxShadow: "var(--shadow)"
+  };
+
+  const githubStyle: React.CSSProperties = {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "0.35rem",
+    color: "var(--text-muted)",
+    fontSize: "0.9rem",
+    textDecoration: "none",
+    fontWeight: 500,
+    marginBottom: "1rem",
+    transition: "all 0.2s ease",
   };
 
   const titleStyle: React.CSSProperties = {
@@ -92,9 +105,10 @@ export function Equipe() {
           lineHeight: "1.8",
           margin: 0
         }}>
-          Somos uma equipe dedicada de desenvolvedores e testadores trabalhando juntos 
-          para criar uma solução completa e robusta. Abaixo estão os membros da equipe 
-          e suas contribuições principais:
+          Somos alunos da UNIFESP e desenvolvemos o Pet System Analytics como projeto da disciplina de 
+          Programação Orientada a Objetos.
+          <br />
+          Conheça a equipe que tornou este projeto possível:
         </p>
       </div>
 
@@ -117,6 +131,28 @@ export function Equipe() {
           >
             <div style={nameStyle}>{member.nome}</div>
             <div style={funcaoStyle}>{member.funcao}</div>
+            <a
+              href={member.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={githubStyle}
+              onMouseOver={(e) => {
+                e.currentTarget.style.color = "var(--accent)";
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.color = "var(--text-muted)";
+              }}
+            >
+              GitHub
+              <span
+                style={{
+                  fontSize: "0.8rem",
+                  transform: "translateY(-1px)"
+                }}
+              >
+                ↗
+              </span>
+            </a>
             <div style={{ color: "var(--text)", marginBottom: "0.5rem", fontWeight: "600" }}>
               Contribuições:
             </div>
