@@ -3,10 +3,11 @@ export function Equipe() {
     {
       id: 1,
       nome: "Andrey Prado",
-      funcao: "Developer",
+      funcao: "Backend Developer",
       github: "https://github.com/AndreyPradoAP",
       contribuicoes: [
-        "",
+        "API REST",
+        "Backend",
       ]
     },
     {
@@ -105,7 +106,7 @@ export function Equipe() {
           lineHeight: "1.8",
           margin: 0
         }}>
-          Somos alunos da UNIFESP e desenvolvemos o Pet System Analytics como projeto da disciplina de 
+          Somos alunos da UNIFESP e desenvolvemos o Pet System Analytics como projeto da disciplina de
           Programação Orientada a Objetos.
           <br />
           Conheça a equipe que tornou este projeto possível:
