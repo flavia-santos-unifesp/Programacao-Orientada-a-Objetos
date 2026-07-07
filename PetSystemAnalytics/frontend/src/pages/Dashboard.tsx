@@ -124,11 +124,17 @@ export function Dashboard({ kpis: initialKpis }: DashboardProps) {
             onChange={(e) => setMes(parseInt(e.target.value))}
             style={{ ...selectStyle, marginLeft: "0.5rem", width: "auto" }}
           >
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => (
-              <option key={m} value={m}>
-                {new Date(ano, m - 1).toLocaleString("pt-BR", { month: "long" })}
-              </option>
-            ))}
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((m) => {
+              const mesNome = new Date(ano, m - 1).toLocaleString("pt-BR", {
+                month: "long",
+              });
+
+              return (
+                <option key={m} value={m}>
+                  {mesNome.charAt(0).toUpperCase() + mesNome.slice(1)}
+                </option>
+              );
+            })}
           </select>
         </label>
 
